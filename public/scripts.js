@@ -33,7 +33,7 @@ $(document).ready(function () {
 	$('#getAllFeeds').on('click', function () {
 		$.get('/getAllFeeds', function (data) {
 			var ul = document.getElementsByClassName('list-group')[0];
-
+			console.log(data);
 			if (!ul.clientHeight)
 				data.map((item) => {
 					var btn = `<button class="btn btn-primary" title=${item.description}>${item.key}</button>`;
