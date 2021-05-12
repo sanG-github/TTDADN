@@ -20,14 +20,11 @@ client.on('connect', function () {
 	console.log('Client connected');
 	// client subcribe topic
 	client.subscribe(`sanghuynh20000/feeds/led`, console.log);
-	// client.publish(`sanghuynh20000/feeds/led`, 'off');
+	client.subscribe(`sanghuynh20000/feeds/temp`, console.log);
 });
 
 client.on('message', function (topic, message) {
-	// in ra màn hình console 1 message ở định dạng string
 	console.log(message.toString());
-	// đóng kết nối của client
-	client.end();
 });
 
 app.use(bodyParser.urlencoded({extended: false}));
@@ -44,6 +41,7 @@ app.get('/getAllFeeds', (req, res) => {
 });
 
 app.post('/changeFeed', (req, res) => {
+	// console.log(req.body);
 	client.publish(
 		`${process.env.USER}/feeds/${req.body.feedName}`,
 		req.body.value
