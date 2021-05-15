@@ -13,7 +13,7 @@ const options = {
 	port: '1883',
 	host: 'io.adafruit.com',
 	username: 'quan260402',
-	password: 'aio_VxTv44yWsLTLsq95KNGoNHQBXwL3',
+	password: 'aio_PQlX51uc1fbmRcu9Z3h34Qo4yw6c',
 };
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
