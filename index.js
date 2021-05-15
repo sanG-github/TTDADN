@@ -93,7 +93,7 @@ function sendDataToClient(data){
 	if(data){
 		console.log(toString(data))
 		const dataSend = JSON.parse(toString(data))
-		console.log(dataSend.data)
+		console.log(dataSend)
 	}
 	
 }
