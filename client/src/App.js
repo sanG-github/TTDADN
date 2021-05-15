@@ -7,12 +7,18 @@ function App() {
     const [feeds, setFeeds] = useState([]);
     const onGetAllFeeds = () => {
         axios
-            .get(process.env.REACT_APP_SERVER_HOST + "/getAllFeeds")
-            .then((res) => setFeeds(res.data))
+            .get("http://localhost:3001/getAllFeeds")
+            .then((res) => {
+                setFeeds(res.data);
+                console.log(res.data)
+            })
             .catch((err) => console.log(err));
+
+        
     };
 
     const onChangeFeed = (type, feedName, value, innerText) => {
+        
         console.log(type, feedName, value, innerText);
         var nextValue;
         if (type === "toggle") nextValue = innerText;
@@ -24,7 +30,7 @@ function App() {
         console.log(feedName, nextValue);
 
         axios
-            .post(process.env.REACT_APP_SERVER_HOST + "/changeFeed", {
+            .post("http://localhost:3001/changeFeed", {
                 data: { feedName: feedName, value: nextValue },
             })
             .then((res) => console.log(res.data))
