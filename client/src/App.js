@@ -25,7 +25,8 @@ function App() {
 
         axios
             .post(process.env.REACT_APP_SERVER_HOST + "/changeFeed", {
-                data: { feedName: feedName, value: nextValue },
+                feedName: feedName,
+                value: nextValue,
             })
             .then((res) => console.log(res.data))
             .catch((err) => console.log(err));
