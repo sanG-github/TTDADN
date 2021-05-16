@@ -61,6 +61,26 @@ io.on("connection", (socket) => {
         // đóng kết nối của client
         // client.end();
     });
+
+    socket.on("changeFeedData", (patternData) => {
+        /* data has this format */
+        // const patternData = `{
+        //     "topic":"quan260402/feeds/bk-iot-led",
+        //     "message":{
+        //         "id":1,
+        //         "name":"LED",
+        //         "data":911,
+        //         "unit":""
+        //     }
+        // }`;
+
+        try {
+            const data = JSON.parse(patternData);
+            client.publish(data.topic, JSON.stringify(data.message));
+        } catch (err) {
+            console.log(err);
+        }
+    });
 });
 
 app.get("/getAllFeeds", (req, res) => {
@@ -68,35 +88,6 @@ app.get("/getAllFeeds", (req, res) => {
         .get(`https://io.adafruit.com/api/v2/quan260402/feeds`)
         .then((res1) => res.send(res1.data))
         .catch((err) => console.log(err, "err"));
-});
-
-app.post("/changeFeed", (req, res) => {
-    console.log(req);
-
-    var data = {
-        id: 1,
-        name: "LED",
-        data: "X",
-        unit: "",
-    };
-
-    client.publish(
-        `${options.username}/feeds/bk-iot-led`,
-        JSON.stringify(data)
-    );
-
-    const reqq = req.body;
-    console.log(reqq);
-
-    // axios
-    // 	.post(
-    // 		`https://io.adafruit.com/api/v2/${process.env.USER}/feeds/${req.body.feedName}/data?X-AIO-Key=${process.env.KEY}`,
-    // 		{
-    // 			datum: {value: req.body.value},
-    // 		}
-    // 	)
-    // 	.then((res1) => console.log(res1))
-    // 	.catch((err) => console.log(err, 'err'));
 });
 
 app.get("/", (req, res) => {

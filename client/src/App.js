@@ -2,22 +2,20 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "antd/dist/antd.css";
 import "./App.css";
-
 import { io } from "socket.io-client";
-
 require("dotenv").config();
+
+const socket = io("http://localhost:3001", {
+    transports: ["websocket"],
+    extraHeaders: {
+        "my-custom-header": "1234", // WARN: this will be ignored in a browser
+    },
+});
 
 function App() {
     const [feeds, setFeeds] = useState([]);
 
     useEffect(() => {
-        const socket = io("http://localhost:3001", {
-            transports: ["websocket"],
-            extraHeaders: {
-                "my-custom-header": "1234", // WARN: this will be ignored in a browser
-            },
-        });
-
         socket.on("feedFromServer", (data) => {
             try {
                 const res = JSON.parse(data);
@@ -27,6 +25,21 @@ function App() {
             }
         });
     });
+
+    const changeFeedData = () => {
+        socket.emit(
+            "changeFeedData",
+            `{
+            "topic":"quan260402/feeds/bk-iot-led",
+            "message":{
+                "id":1,
+                "name":"LED",
+                "data":"xyz",
+                "unit":""
+            }
+        }`
+        );
+    };
 
     return (
         <div className="App">
@@ -40,6 +53,9 @@ function App() {
                             </li>
                         ))}
                 </ul>
+                <button onClick={() => changeFeedData()}>
+                    Test Change Data
+                </button>
             </div>
         </div>
     );
