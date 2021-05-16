@@ -13,7 +13,7 @@ const options = {
 	port: '1883',
 	host: 'io.adafruit.com',
 	username: 'quan260402',
-	password: 'aio_PQlX51uc1fbmRcu9Z3h34Qo4yw6c',
+	password: 'aio_foZt45qdtMTtcEUa2ThB7TjeWYxQ',
 };
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
@@ -43,7 +43,7 @@ client.on('message', function (topic, message) {
 app.get('/getAllFeeds', (req, res) => {
 	axios
 		.get(
-			`https://io.adafruit.com/api/v2/${options.username}/feeds?X-AIO-Key=${options.password}`
+			`https://io.adafruit.com/api/v2/quan260402/feeds/bk-iot-led`
 		)
 		.then((res1) => res.status(200).send(res1.data))
 		.catch((err) => console.log(err, 'err'));
