@@ -2,8 +2,7 @@ import React, { useState ,useEffect} from "react";
 import axios from "axios";
 import 'antd/dist/antd.css';
 import "./App.css";
-import { Table, Tag, Space } from 'antd';
-const { Column, ColumnGroup } = Table;
+
 require("dotenv").config();
 
 function App() {
@@ -51,22 +50,7 @@ function App() {
                             {feeds.last_value}
                         </li> : ""
                     
-                    // <Table dataSource={feeds}>
-                    //   <Column title="Module" dataIndex="key" key="key" />
-                    //   <Column title="Value" dataIndex="last_value" key="last_value" />
-                  
-                    //   {/* <Column
-                    //     title="Action"
-                    //     key="action"
-                    //     render={(text, record) => (
-                    //       <Space size="middle">
-                    //         <a>Invite {record.lastName}</a>
-                    //         <a>Delete</a>
-                    //       </Space>
-                    //     )}
-                    //   /> */}
-                    // </Table> : ""
-                        
+                
                     }
                 </ul>
             </div>
