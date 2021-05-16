@@ -29,7 +29,7 @@ const options = {
 var client = mqtt.connect("mqtt://" + options.host, options);
 
 client.on("connect", function () {
-    console.log("mqtt: new client connected");
+    console.log("mqtt: new client connected!");
 });
 
 axios.get(`https://io.adafruit.com/api/v2/quan260402/feeds`).then((res) => {
@@ -54,7 +54,10 @@ io.on("connection", (socket) => {
             message.toString()
         );
 
-        socket.emit("feedFromServer", message.toString());
+        socket.emit("feedFromServer", {
+            topic: topic,
+            data: message.toString(),
+        });
         // đóng kết nối của client
         // client.end();
     });
