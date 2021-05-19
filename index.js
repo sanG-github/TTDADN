@@ -5,6 +5,7 @@ const mqtt = require("mqtt");
 const http = require("http");
 const socket = require("socket.io");
 const cors = require("cors");
+const mysql = require('mysql');
 require("dotenv").config();
 
 const PORT = 3001;
@@ -13,6 +14,57 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({ origin: "http://localhost:3000" }));
+
+//Connect database
+const database = mysql.createPool(
+    {
+        host: "localhost",
+        user: "root",
+        password: "quan0402",
+        database: "DADN",
+    }
+)
+
+app.get("/device", (req, res) => {
+    const sqlSelect = "SELECT * FROM `device`";
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+});
+
+app.get("/temperature", (req, res) => {
+    const sqlSelect = "SELECT * FROM `temperature`";
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+});
+
+app.get("/moisture", (req, res) => {
+    const sqlSelect = "SELECT * FROM `moisture`";
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+});
+
+app.get("/light", (req, res) => {
+    const sqlSelect = "SELECT * FROM `light`";
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+});
+
 
 // Socket setup
 const server = http.createServer(app);
@@ -41,7 +93,7 @@ axios.get(`https://io.adafruit.com/api/v2/quan260402/feeds`).then((res) => {
     });
 });
 
-io.on("connection", (socket) => {
+io.on("connection",  (socket) => {
     console.log("socketIO: new client connected ");
 
     // message when data changed from
@@ -53,11 +105,30 @@ io.on("connection", (socket) => {
             "\nMessage: ",
             message.toString()
         );
+        
+        console.log(JSON.parse(message));
+        const values = JSON.parse(message);
+        let table = ''
+        switch(values.name){
+            case 'LIGHT' : table = 'light';break;
+            case 'SOIL' : table = 'moisture';break;
+            case 'TEMP-HUMID' : table = 'temperature';break;
+            default : break;
+        }
+        
+        const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
+        database.query(sqlSelect, (err, result) => {
+            if (err) {
+                console.log(err);
+            }
+            console.log('Insert success')
+        });
 
         socket.emit("feedFromServer", {
             topic: topic,
             data: message.toString(),
         });
+
         // đóng kết nối của client
         // client.end();
     });

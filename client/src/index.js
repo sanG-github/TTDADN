@@ -3,10 +3,11 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import SiderDemo from './Layout';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <SiderDemo />
   </React.StrictMode>,
   document.getElementById('root')
 );

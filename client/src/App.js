@@ -20,6 +20,8 @@ function App() {
             try {
                 const res = JSON.parse(data);
                 console.log(typeof res, res);
+                setFeeds(data)
+                
             } catch (err) {
                 console.log(typeof data, data);
             }
@@ -27,14 +29,16 @@ function App() {
     });
 
     const changeFeedData = () => {
+
+        console.log("alo")
         socket.emit(
             "changeFeedData",
             `{
-            "topic":"quan260402/feeds/bk-iot-led",
+            "topic":"quan260402/feeds/bk-iot-light",
             "message":{
-                "id":1,
-                "name":"LED",
-                "data":"xyz",
+                "id":"13",
+                "name":"LIGHT",
+                "data":"X",
                 "unit":""
             }
         }`
