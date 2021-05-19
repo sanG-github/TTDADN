@@ -65,6 +65,43 @@ app.get("/light", (req, res) => {
     });
 });
 
+app.get("/constrain", (req, res) => {
+    let sqlSelect = "";
+    if(!req.query.type){
+       sqlSelect = "SELECT * FROM `constrain`";
+    }
+    else {
+        sqlSelect = "SELECT * FROM `constrain` WHERE `type` = '"+req.query.type+"'";
+        console.log(sqlSelect)
+    }
+    
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+});
+
+app.post("/setConstrain", (req, res) => {
+
+    const values = {
+        type : req.body.type,
+        upper_bound : req.body.upper_bound,
+        lower_bound : req.body.lower_bound,
+    }
+
+    const sqlUpdate =
+    `UPDATE constrain SET lower-bound = ${values.lower_bound}, upper-bound  = ${values.upper_bound} WHERE type = '${values.type}'`;
+    console.log(sqlUpdate)
+    // database.query(
+    //     sqlInsert,(err, result) => {
+    //     if (err) console.log(err);
+    //     else console.log("success");
+    //     }
+    // );
+});
+
 
 // Socket setup
 const server = http.createServer(app);

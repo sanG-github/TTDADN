@@ -38,7 +38,7 @@ function Record() {
                 
                 </Select>
             </div>
-            {type == 'device' ? 
+            {type === 'device' ? 
             
             <Table dataSource={data} style={{}}>
                 <Column title="ID" dataIndex="id" key="id" />
