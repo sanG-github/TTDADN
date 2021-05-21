@@ -100,9 +100,14 @@ function WaterPump({datum}){
 function Engine({datum}){
 
     const [value, setValue] = useState(125)
+    const [direction, setDirection] = useState(true)
 
     function handleChange(value){
         setValue(value)
+    }
+
+    function switchDirection(){
+        setDirection(!direction)
     }
 
     console.log(datum)
@@ -115,15 +120,14 @@ function Engine({datum}){
         } />} style={{ width: 300,margin: '10px 10px' }}>
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
-            <p>Chiều quay : {value >= 0 ? "Thuận chiều kim đồng hồ" : "Ngược chiều kim đồng hồ"} </p>
-            
-            <Switch defaultChecked onChange={
-            (checked,event) => {
-                onChange(checked,event,datum)
-            }
-            } />
+            <p>Chiều quay : {direction === true ? "Thuận chiều kim đồng hồ" : "Ngược chiều kim đồng hồ"} </p>
+            <p> Đổi chiều
+            <span><Switch value={direction} style={{margin: '0 20px'}} onChange={switchDirection}
+             />
+            </span>
+            </p>
             <p>Tốc độ quay</p>
-            <Slider defaultValue={0} min={-255} max={255} onChange={handleChange}/>
+            <Slider defaultValue={0} min={0} max={255} onChange={handleChange}/>
         </Card>
     )
 }
