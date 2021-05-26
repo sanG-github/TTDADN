@@ -7,7 +7,10 @@ import { Switch } from 'antd';
 import { io } from "socket.io-client";
 import { Select } from 'antd';
 import { Slider } from 'antd';
+import { Input} from 'antd';
+import { Button } from 'antd';
 const { Option } = Select;
+const { Search } = Input;
 require("dotenv").config();
 
 const socket = io("http://localhost:3001", {
@@ -17,30 +20,39 @@ const socket = io("http://localhost:3001", {
     },
 });
 
-function onChange(feed,feedName,data) {
+function publishData(datum,value) {
 
     socket.emit(
         "changeFeedData",
         `{
-        "topic":"quan260402/feeds/${feed}",
+        "topic":"CSE_BBC/feeds/${datum.feed}",
         "message":{
-            "id":"13",
-            "name":"${feedName}",
-            "data":"",
-            "unit":""
+            "id":"${datum.id}",
+            "name":"${datum.feedName}",
+            "data":"${value}",
+            "unit":"${datum.unit === undefined ? "" : datum.unit}"
         }
     }`
     );
+    console.log("Success")
 }
 
+
+
+
 function Led({datum}){
+
+    function onChange(value){
+        //publish
+        publishData(datum,value);
+    }
 
     return (
         <Card title={datum.name}  style={{ width: 300,margin: '10px 10px' }}>
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
             <span>Chọn :</span>
-            <Select defaultValue="2" onChange="" style={{ width: 100, margin: '0 20px',}}>
+            <Select defaultValue="2" onChange={(value => onChange(value))} style={{ width: 100, margin: '0 20px',}}>
                     <Option value="2">Xanh</Option>
                     <Option value="1">Đỏ</Option>
                     <Option value="0">Tắt</Option>
@@ -51,21 +63,45 @@ function Led({datum}){
 
 function Speaker({datum}){
 
-    console.log(datum)
+    const [value , setValue] = useState(0);
+
+    function onClick(e){
+        // publish
+        publishData(datum,value)
+    }
+    function onChange(value){
+        setValue(value)
+    }
 
     return (
         <Card title={datum.name} extra="" style={{ width: 300,margin: '10px 10px' }}>
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
             <p>Âm lượng</p>
-            <Slider defaultValue={500} min={0} max={1023} />
+            <Slider defaultValue={500} min={0} max={1023} onChange={(value) => onChange(value)}/>
+            <Button type="primary" onClick={(e) => onClick(e)}>Nhập</Button>
         </Card>
     )
 }
 
 function LCD({datum}){
 
-    console.log(datum)
+    const [state, setState] = useState('')
+
+    function onSearch (value) {
+        if(value.length < 12){
+            publishData(datum,value)
+        }
+    }
+
+    function onChange(e){
+        if (e.target.value.length >= 12){
+            setState("Không vượt quá 12 ký tự")
+        }
+        else {
+            setState("")
+        }
+    }
 
     return (
         <Card title={datum.name} extra={<Switch defaultChecked onChange={
@@ -73,26 +109,39 @@ function LCD({datum}){
                 onChange(checked,event,datum)
             }
         } />} style={{ width: 300,margin: '10px 10px' }}>
+            <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
+            <Search
+            placeholder="Nhập chuỗi kí tự"
+            allowClear
+            enterButton="Nhập"
+            size="large"
+            onSearch={(value)=>onSearch(value)}
+            onChange={(e) => onChange(e)}
+            />
+            <p>{state}</p>
         </Card>
     )
 }
 
 function WaterPump({datum}){
 
-    console.log(datum)
+    const [value , setValue] = useState(0);
 
+    function onClick(e){
+        // publish
+        publishData(datum,value)
+    }
     return (
         <Card title={datum.name} extra={<Switch defaultChecked onChange={
             (checked) => {
-                const feed = ""
-                const feedName =""
                 const data = checked ? 1 : 0;
-                console.log(data);
-                onChange(feed,feedName,data);
+                setValue(data)
             }
         } />} style={{ width: 300,margin: '10px 10px' }}>
+            <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
+            <Button type="primary" onClick={(e) => onClick(e)}>Nhập</Button>
         </Card>
     )
 }
@@ -102,20 +151,25 @@ function Engine({datum}){
     const [value, setValue] = useState(125)
     const [direction, setDirection] = useState(true)
 
-    function handleChange(value){
-        setValue(value)
+    function onClick(e){
+        // publish
+        publishData(datum,direction === true ? value : -value)
+    }
+
+    function handleChange(checked){
+        setValue(checked)
     }
 
     function switchDirection(){
         setDirection(!direction)
     }
 
-    console.log(datum)
+    
 
     return (
         <Card title={datum.name} extra={<Switch defaultChecked onChange={
-            (checked,event) => {
-                onChange(checked,event,datum)
+            (checked) => {
+                handleChange(checked)
             }
         } />} style={{ width: 300,margin: '10px 10px' }}>
             <p>ID thiết bị: {datum.id}</p>
@@ -128,6 +182,7 @@ function Engine({datum}){
             </p>
             <p>Tốc độ quay</p>
             <Slider defaultValue={0} min={0} max={255} onChange={handleChange}/>
+            <Button type="primary" onClick={(e) => onClick(e)}>Nhập</Button>
         </Card>
     )
 }
@@ -138,14 +193,13 @@ function ControlPanel() {
 
     useEffect(()=>{
         axios.get(`http://localhost:3001/device`).then(response => {
-            console.log('alo')
             setData(response.data);
         })
     },[])
 
     // const changeFeedData = (checked) => {
 
-    //     console.log("alo")
+    //   
     //     socket.emit(
     //         "changeFeedData",
     //         `{

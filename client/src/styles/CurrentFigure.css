@@ -8,14 +8,17 @@
     font-size: 20px;
     font-weight: 500;
 }
+.Figure {
+    margin:10px 20px
+}
 
 .Figure-Block {
     margin: 30px 25%;
-    
     width: 60%;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    flex-wrap: wrap;
 
 }
 

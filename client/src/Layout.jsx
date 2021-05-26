@@ -13,7 +13,6 @@ import {
   } from "react-router-dom";
 import ControlPanel from './pages/ControlPanel';
 import CurrentFigure from './pages/CurrentFigure';
-import Instruction from './pages/Instruction';
 import Statistic from './pages/Statistic';
 import Record from './pages/Record';
 
@@ -53,9 +52,6 @@ class SiderDemo extends React.Component {
             <Menu.Item key="11" icon={<FontAwesomeIcon icon={faDatabase} />}>
                 <Link to="/record">Bảng dữ liệu</Link>
             </Menu.Item>
-            <Menu.Item key="9" icon={<FontAwesomeIcon icon={faBook} />}>
-                <Link to="/instruction">Hướng dẫn nuôi trồng</Link>
-            </Menu.Item>
             <Menu.Item key="10" icon={<FontAwesomeIcon icon={faCogs} />}>
                 <Link to="/control-panel">Trung tâm điều khiển</Link>
             </Menu.Item>
@@ -77,9 +73,6 @@ class SiderDemo extends React.Component {
                 </Route>
                 <Route exact path="/record">
                     <Record />
-                </Route>
-                <Route exact path="/instruction">
-                    <Instruction />
                 </Route>
                 <Route exact path="/statistic">
                     <Statistic />

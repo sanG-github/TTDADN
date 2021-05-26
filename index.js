@@ -121,7 +121,7 @@ client.on("connect", function () {
     console.log("mqtt: new client connected!");
 });
 
-axios.get(`https://io.adafruit.com/api/v2/quan260402/feeds`).then((res) => {
+axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
     const feeds = res.data;
     console.log(`----------------------\nAll feeds:`);
     feeds.map((feed) => {
@@ -147,19 +147,18 @@ io.on("connection",  (socket) => {
         const values = JSON.parse(message);
         let table = ''
         switch(values.name){
-            case 'LIGHT' : table = 'light';break;
             case 'SOIL' : table = 'moisture';break;
             case 'TEMP-HUMID' : table = 'temperature';break;
             default : break;
         }
         
-        const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
-        database.query(sqlSelect, (err, result) => {
-            if (err) {
-                console.log(err);
-            }
-            console.log('Insert success')
-        });
+        // const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
+        // database.query(sqlSelect, (err, result) => {
+        //     if (err) {
+        //         console.log(err);
+        //     }
+        //     console.log('Insert success')
+        // });
 
         socket.emit("feedFromServer", {
             topic: topic,
@@ -193,7 +192,7 @@ io.on("connection",  (socket) => {
 
 app.get("/getAllFeeds", (req, res) => {
     axios
-        .get(`https://io.adafruit.com/api/v2/quan260402/feeds`)
+        .get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`)
         .then((res1) => res.send(res1.data))
         .catch((err) => console.log(err, "err"));
 });
