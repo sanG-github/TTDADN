@@ -22,10 +22,20 @@ const socket = io("http://localhost:3001", {
 
 function publishData(datum,value) {
 
+
+    var server =''
+
+    if(datum.feedName === 'RELAY'){
+        server = 'CSE_BBC1';
+    }
+    else {
+        server = 'CSE_BBC';
+    }
+
     socket.emit(
         "changeFeedData",
         `{
-        "topic":"CSE_BBC/feeds/${datum.feed}",
+        "topic":"${server}/feeds/${datum.feed}",
         "message":{
             "id":"${datum.id}",
             "name":"${datum.feedName}",
@@ -128,20 +138,17 @@ function WaterPump({datum}){
 
     const [value , setValue] = useState(0);
 
-    function onClick(e){
-        // publish
-        publishData(datum,value)
-    }
     return (
         <Card title={datum.name} extra={<Switch defaultChecked onChange={
             (checked) => {
                 const data = checked ? 1 : 0;
                 setValue(data)
+                publishData(datum,value)
             }
         } />} style={{ width: 300,margin: '10px 10px' }}>
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
-            <Button type="primary" onClick={(e) => onClick(e)}>Nhập</Button>
+            
         </Card>
     )
 }

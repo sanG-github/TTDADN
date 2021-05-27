@@ -46,6 +46,28 @@ function CurrentFigure() {
     },[]);
 
     useEffect(() => {
+        socket.on("feedFromServer2", (data) => {
+            try {
+                
+                const res = JSON.parse(data.data)
+                console.log(res)
+                switch(res.name){
+                    case 'TEMP-HUMID' :
+                                        setTemp(JSON.parse(data.data).data.split('-')[0]); 
+                                        setHumidity(JSON.parse(data.data).data.split('-')[1]); 
+                                        break;
+                    case 'LIGHT' : setLight(JSON.parse(data.data)); break;
+                    case 'SOIL' : setMoisture(JSON.parse(data.data)); break;
+                    default : break;
+                }
+            } catch (err) {
+                console.log(typeof data, data);
+                console.log(err)
+            }
+        });
+    });
+
+    useEffect(() => {
         socket.on("feedFromServer", (data) => {
             try {
                 
@@ -57,7 +79,7 @@ function CurrentFigure() {
                                         setHumidity(JSON.parse(data.data).data.split('-')[1]); 
                                         break;
                     case 'LIGHT' : setLight(JSON.parse(data.data)); break;
-                    case 'DRV_PWM' : setMoisture(JSON.parse(data.data)); break;
+                    case 'SOIL' : setMoisture(JSON.parse(data.data)); break;
                     default : break;
                 }
             } catch (err) {
@@ -77,7 +99,7 @@ function CurrentFigure() {
             <div className="Figure-Block">
                 <div className="Figure" style={ (temp >= 21 && temp <= 35 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faThermometerThreeQuarters} />  Nhiệt độ : {temp} độ C</div>
                 <div className="Figure" style={ (light.data >= 650 && light.data <= 850 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faSun} />  Độ sáng : {light.data} </div>
-                <div className="Figure" style={ (moisture.data >= 717 && moisture.data <= 818 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faWater} />  Độ ẩm đất : {moisture.data} {moisture.unit}</div>
+                <div className="Figure" style={ (moisture.data >= 80 && moisture.data <= 60 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faWater} />  Độ ẩm đất : {moisture.data} {moisture.unit}</div>
                 <div className="Figure" style={ (humidity >= 717 && moisture.data <= 818 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faWater} />  Độ ẩm không khí : {humidity} %</div>
             </div>
         </div>

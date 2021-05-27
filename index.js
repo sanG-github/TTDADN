@@ -108,6 +108,8 @@ const server = http.createServer(app);
 const io = socket(server);
 
 // MQTT
+
+
 const options = {
     port: process.env.PORT,
     host: process.env.HOST,
@@ -115,13 +117,35 @@ const options = {
     password: process.env.KEY,
 };
 
+const options2 = {
+    port: process.env.PORT,
+    host: process.env.HOST,
+    username: process.env.USERX_02,
+    password: process.env.KEY_02,
+};
+
 var client = mqtt.connect("mqtt://" + options.host, options);
 
+var client2 = mqtt.connect("mqtt://" + options2.host, options2);
+
 client.on("connect", function () {
-    console.log("mqtt: new client connected!");
+    console.log("mqtt: server CSE_BBC connected!");
+});
+
+client2.on("connect", function () {
+    console.log("mqtt: server CSE_BBC1 connected!");
 });
 
 axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
+    const feeds = res.data;
+    console.log(`----------------------\nAll feeds:`);
+    feeds.map((feed) => {
+        console.log("\t", feed.name);
+        client.subscribe(process.env.USERX + "/feeds/" + feed.name);
+    });
+});
+
+axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
     const feeds = res.data;
     console.log(`----------------------\nAll feeds:`);
     feeds.map((feed) => {
@@ -152,15 +176,52 @@ io.on("connection",  (socket) => {
             default : break;
         }
         
-        // const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
-        // database.query(sqlSelect, (err, result) => {
-        //     if (err) {
-        //         console.log(err);
-        //     }
-        //     console.log('Insert success')
-        // });
+        if(table != ''){
+            const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
+            database.query(sqlSelect, (err, result) => {
+                if (err) {
+                    console.log(err);
+                }
+                console.log('Insert success')
+            });
+        }
+        
 
         socket.emit("feedFromServer", {
+            topic: topic,
+            data: message.toString(),
+        });
+
+        // đóng kết nối của client
+        // client.end();
+    });
+
+    client2.on("message", function (topic, message) {
+        // in ra màn hình console 1 message ở định dạng string
+        console.log(
+            "----------------------\nTopic: ",
+            topic,
+            "\nMessage: ",
+            message.toString()
+        );
+        
+        console.log(JSON.parse(message));
+        const values = JSON.parse(message);
+        let table = ''
+        switch(values.name){
+            case 'LIGHT' : table = 'light';break;
+            default : break;
+        }
+        
+        const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
+        database.query(sqlSelect, (err, result) => {
+            if (err) {
+                console.log(err);
+            }
+            console.log('Insert success')
+        });
+
+        socket.emit("feedFromServer2", {
             topic: topic,
             data: message.toString(),
         });
@@ -183,7 +244,14 @@ io.on("connection",  (socket) => {
 
         try {
             const data = JSON.parse(patternData);
-            client.publish(data.topic, JSON.stringify(data.message));
+            console.log(JSON.parse(patternData))
+            if(data.message.name === 'RELAY'){
+                client2.publish(data.topic, JSON.stringify(data.message));
+            }
+            else {
+                client.publish(data.topic, JSON.stringify(data.message));
+            }
+            
         } catch (err) {
             console.log(err);
         }

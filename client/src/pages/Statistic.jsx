@@ -67,12 +67,14 @@ function Statistic() {
             <div>Biểu độ nhiệt độ trung bình</div>
 
             <div className="Chart">
-            <LineChart width={600} height={300} data={temp} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+            
+            <LineChart width={750} height={300} data={temp} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <Line type="monotone" dataKey="uv" stroke="#e3242b" />
                 <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                 <XAxis dataKey="name" />
                 <YAxis />
             </LineChart>
+            
             </div>
             
 
