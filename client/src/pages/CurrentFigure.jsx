@@ -91,7 +91,7 @@ function CurrentFigure() {
 
     return (
         <div className="Current-Figure">
-            <div>Thông số vườn cà chua hiện tại</div>
+            <div className="title">Thông số vườn cà chua hiện tại</div>
             <div className="Banner">
                 <img className="img" src={tree} alt="" />
             </div>

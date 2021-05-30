@@ -225,7 +225,7 @@ function ControlPanel() {
 
     return (
         <div>
-            <div className="title">Bảng điều khiển</div>
+            <div className="title">Bảng điều khiển thiết bị</div>
             <div className="Device-block">
                 {
                     data && data.filter((datum) => datum.type === 'output').map((datum) => {

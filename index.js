@@ -105,7 +105,10 @@ app.post("/setConstrain", (req, res) => {
 
 // Socket setup
 const server = http.createServer(app);
+const server2 = http.createServer(app);
+
 const io = socket(server);
+const io2 = socket(server2);
 
 // MQTT
 
@@ -160,6 +163,8 @@ io.on("connection",  (socket) => {
     // message when data changed from
     client.on("message", function (topic, message) {
         // in ra màn hình console 1 message ở định dạng string
+        console.log("Message from server CSE_BBC");
+
         console.log(
             "----------------------\nTopic: ",
             topic,
@@ -198,6 +203,9 @@ io.on("connection",  (socket) => {
 
     client2.on("message", function (topic, message) {
         // in ra màn hình console 1 message ở định dạng string
+
+        console.log("Message from server CSE_BBC1");
+        
         console.log(
             "----------------------\nTopic: ",
             topic,
@@ -209,19 +217,23 @@ io.on("connection",  (socket) => {
         const values = JSON.parse(message);
         let table = ''
         switch(values.name){
-            case 'LIGHT' : table = 'light';break;
+            case 'SOIL' : table = 'moisture';break;
+            case 'TEMP-HUMID' : table = 'temperature';break;
             default : break;
         }
         
-        const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
-        database.query(sqlSelect, (err, result) => {
-            if (err) {
-                console.log(err);
-            }
-            console.log('Insert success')
-        });
+        if(table != ''){
+            const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
+            database.query(sqlSelect, (err, result) => {
+                if (err) {
+                    console.log(err);
+                }
+                console.log('Insert success')
+            });
+        }
+        
 
-        socket.emit("feedFromServer2", {
+        socket.emit("feedFromServer", {
             topic: topic,
             data: message.toString(),
         });
@@ -229,6 +241,8 @@ io.on("connection",  (socket) => {
         // đóng kết nối của client
         // client.end();
     });
+
+   
 
     socket.on("changeFeedData", (patternData) => {
         /* data has this format */
@@ -257,6 +271,8 @@ io.on("connection",  (socket) => {
         }
     });
 });
+
+
 
 app.get("/getAllFeeds", (req, res) => {
     axios
