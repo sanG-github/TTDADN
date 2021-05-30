@@ -1,104 +1,36 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
+import { Route, Router, Switch } from "react-router-dom";
+import { io } from "socket.io-client";
+import SiderDemo from "./Layout";
+import Account from "./pages/Account";
+import "antd/dist/antd.css";
 import "./App.css";
 require("dotenv").config();
 
+const socket = io("http://localhost:3001", {
+    transports: ["websocket"],
+    extraHeaders: {
+        "my-custom-header": "1234", // WARN: this will be ignored in a browser
+    },
+});
+
 function App() {
-    const [feeds, setFeeds] = useState([]);
-    const onGetAllFeeds = () => {
-        axios
-            .get("http://localhost:3001/getAllFeeds")
-            .then((res) => {
-                setFeeds(res.data);
-                console.log(res.data)
-            })
-            .catch((err) => console.log(err));
-
-        
-    };
-
-    const onChangeFeed = (type, feedName, value, innerText) => {
-        
-        console.log(type, feedName, value, innerText);
-        var nextValue;
-        if (type === "toggle") nextValue = innerText;
-        else {
-            if (innerText === "+") nextValue = parseInt(value) + 1;
-            else nextValue = parseInt(value) - 1;
-        }
-
-        console.log(feedName, nextValue);
-
-        axios
-            .post("http://localhost:3001/changeFeed", {
-                data: { feedName: feedName, value: nextValue },
-            })
-            .then((res) => console.log(res.data))
-            .catch((err) => console.log(err));
-    };
-
     return (
-        <div className="App">
-            <div className="wrapper">
-                <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => onGetAllFeeds()}
-                >
-                    GET FEEDS
-                </button>
-                <ul className="list-group">
-                    {feeds &&
-                        feeds.map((feed, key) => (
-                            <li key={key}>
-                                <h2>{feed.key}</h2>
-                                <button
-                                    type="button"
-                                    className="btn btn-danger"
-                                    onClick={(e) =>
-                                        onChangeFeed(
-                                            feed.last_value === "ON" ||
-                                                feed.last_value === "OFF"
-                                                ? "toggle"
-                                                : "num",
-                                            feed.key,
-                                            feed.last_value,
-                                            e.target.innerText
-                                        )
-                                    }
-                                >
-                                    {feed.last_value === "ON" ||
-                                    feed.last_value === "OFF"
-                                        ? "OFF"
-                                        : "-"}
-                                </button>
-                                <h2>{feed.last_value}</h2>
-                                <button
-                                    type="button"
-                                    className="btn btn-success"
-                                    onClick={(e) =>
-                                        onChangeFeed(
-                                            feed.last_value === "ON" ||
-                                                feed.last_value === "OFF"
-                                                ? "toggle"
-                                                : "num",
-                                            feed.key,
-                                            feed.last_value,
-                                            e.target.innerText
-                                        )
-                                    }
-                                >
-                                    {feed.last_value === "ON" ||
-                                    feed.last_value === "OFF"
-                                        ? "ON"
-                                        : "+"}
-                                </button>
-                            </li>
-                        ))}
-                </ul>
-            </div>
-        </div>
+        <Router>
+            <Switch>
+                <Route path="/app" component={ProtectedLayout} />
+                <Route path="/" component={PublicLayout} />
+            </Switch>
+        </Router>
     );
 }
+
+const ProtectedLayout = (props) => (
+    <Switch>
+        <Route exact path="/app/dashboard" component={SiderDemo} />
+    </Switch>
+);
+
+const PublicLayout = (props) => <Route exact path="/" component={Account} />;
 
 export default App;
