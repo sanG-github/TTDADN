@@ -25,6 +25,26 @@ const database = mysql.createPool(
     }
 )
 
+app.get("/statistic/temperature",(req,res)=>{
+    const sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature GROUP BY day(datetime)";
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+})
+
+app.get("/statistic/moisture",(req,res)=>{
+    const sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture GROUP BY day(datetime)";
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+})
+
 app.get("/device", (req, res) => {
     const sqlSelect = "SELECT * FROM `device`";
     database.query(sqlSelect, (err, result) => {

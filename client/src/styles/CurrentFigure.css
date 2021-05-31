@@ -9,7 +9,15 @@
     font-weight: 500;
 }
 .Figure {
-    margin:10px 20px
+    width: 20%;
+    min-width: 250px;
+    margin:10px 20px;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 20px ;
+    text-align: center; 
+    background-color: white;
+    color: black;
+    padding: 20px 0;
 }
 
 .Figure-Block {

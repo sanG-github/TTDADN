@@ -2,8 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import '../styles/CurrentFigure.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+
 import tree from '../img/tomato-4.png'
-import { faThermometerThreeQuarters, faSun,faWater} from '@fortawesome/free-solid-svg-icons'
+import lightImg from '../img/light.png'
+import temperatureImg from '../img/temperature.png'
+import moistureImg from '../img/moisture.png'
+import humidityImg from '../img/humidity.png'
+
+
 const io = require("socket.io-client")
 
 require("dotenv").config();
@@ -97,10 +103,10 @@ function CurrentFigure() {
             </div>
 
             <div className="Figure-Block">
-                <div className="Figure" style={ (temp >= 21 && temp <= 35 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faThermometerThreeQuarters} />  Nhiệt độ : {temp} độ C</div>
-                <div className="Figure" style={ (light.data >= 650 && light.data <= 850 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faSun} />  Độ sáng : {light.data} </div>
-                <div className="Figure" style={ (moisture.data >= 80 && moisture.data <= 60 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faWater} />  Độ ẩm đất : {moisture.data} {moisture.unit}</div>
-                <div className="Figure" style={ (humidity >= 717 && moisture.data <= 818 )? {color:'#08f25e'} : {color:'#ff3333'}} ><FontAwesomeIcon icon={faWater} />  Độ ẩm không khí : {humidity} %</div>
+                <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={temperatureImg} alt="" />  Nhiệt độ : <p style={ (temp >= 21 && temp <= 35 )? {color:'#08f25e'} : {color:'#ff3333'}}>{temp} độ C</p></div>
+                <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={lightImg} alt="" />  Cường độ ánh sáng : <p style={ (light.data >= 650 && light.data <= 850 )? {color:'#08f25e'} : {color:'#ff3333'}}>{light.data}</p> </div>
+                <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={moistureImg} alt="" />  Độ ẩm đất : <p style={ (moisture.data >= 80 && moisture.data <= 60 )? {color:'#08f25e'} : {color:'#ff3333'}} >{moisture.data} {moisture.unit}</p></div>
+                <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={humidityImg} alt="" />  Độ ẩm không khí : <p style={ (humidity >= 717 && moisture.data <= 818 )? {color:'#08f25e'} : {color:'#ff3333'}}>{humidity} %</p></div>
             </div>
         </div>
     )

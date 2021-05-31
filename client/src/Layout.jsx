@@ -15,6 +15,7 @@ import ControlPanel from './pages/ControlPanel';
 import CurrentFigure from './pages/CurrentFigure';
 import Statistic from './pages/Statistic';
 import Record from './pages/Record';
+import GardenControl from './pages/GardenControl';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -55,6 +56,9 @@ class SiderDemo extends React.Component {
                 <Menu.Item key="10" icon={<FontAwesomeIcon icon={faCogs} />}>
                     <Link to="/control-panel">Trung tâm điều khiển</Link>
                 </Menu.Item>
+                <Menu.Item key="12" icon={<FontAwesomeIcon icon={faCogs} />}>
+                    <Link to="/garden-control">Điều khiểm vườn</Link>
+                </Menu.Item>
               </Menu>
             </Sider>
             <Layout className="site-layout">
@@ -76,6 +80,9 @@ class SiderDemo extends React.Component {
                     </Route>
                     <Route exact path="/statistic">
                         <Statistic />
+                    </Route>
+                    <Route exact path="/garden-control">
+                        <GardenControl />
                     </Route>
                     </Suspense>
                 </Switch>
