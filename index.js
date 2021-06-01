@@ -126,38 +126,44 @@ app.post("/setConstrain", (req, res) => {
 // Socket setup
 const server = http.createServer(app);
 const io = socket(server);
-
+var client, client2;
 // MQTT
+// Update Key
+async function updateClient() {
+    await axios.get("http://dadn.esp32thanhdanh.link/").then((res) => {
+        const options = {
+            port: process.env.PORT,
+            host: process.env.HOST,
+            username: process.env.USERX,
+            password: res.data.keyBBC,
+        };
 
-const options = {
-    port: process.env.PORT,
-    host: process.env.HOST,
-    username: process.env.USERX,
-    password: process.env.KEY,
-};
+        const options2 = {
+            port: process.env.PORT,
+            host: process.env.HOST,
+            username: process.env.USERX_02,
+            password: res.data.keyBBC1,
+        };
 
-const options2 = {
-    port: process.env.PORT,
-    host: process.env.HOST,
-    username: process.env.USERX_02,
-    password: process.env.KEY_02,
-};
+        client = mqtt.connect("mqtt://" + options.host, options);
 
-var client = mqtt.connect("mqtt://" + options.host, options);
+        client2 = mqtt.connect("mqtt://" + options2.host, options2);
 
-var client2 = mqtt.connect("mqtt://" + options2.host, options2);
+        client.on("connect", function () {
+            console.log("mqtt: server CSE_BBC connected!");
+        });
 
-client.on("connect", function () {
-    console.log("mqtt: server CSE_BBC connected!");
-});
+        client2.on("connect", function () {
+            console.log("mqtt: server CSE_BBC1 connected!");
+        });
+    });
+}
 
-client2.on("connect", function () {
-    console.log("mqtt: server CSE_BBC1 connected!");
-});
+updateClient();
 
 axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
     const feeds = res.data;
-    console.log(`----------------------\nAll feeds:`);
+    console.log(`----------------------\nAll feeds from ${process.env.USERX}:`);
     feeds.map((feed) => {
         console.log("\t", feed.name);
         client.subscribe(process.env.USERX + "/feeds/" + feed.name);
@@ -166,10 +172,12 @@ axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
 
 axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
     const feeds = res.data;
-    console.log(`----------------------\nAll feeds:`);
+    console.log(
+        `----------------------\nAll feeds from ${process.env.USERX_02}:`
+    );
     feeds.map((feed) => {
         console.log("\t", feed.name);
-        client.subscribe(process.env.USERX + "/feeds/" + feed.name);
+        client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
     });
 });
 
