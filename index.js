@@ -1,19 +1,44 @@
 const express = require("express");
-const axios = require("axios");
-const bodyParser = require("body-parser");
-const mqtt = require("mqtt");
-const http = require("http");
-const socket = require("socket.io");
 const cors = require("cors");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+
+const http = require("http");
+
+const axios = require("axios");
+const mqtt = require("mqtt");
+const socket = require("socket.io");
 const mysql = require("mysql");
+const bcrypt = require("bcrypt");
+
 require("dotenv").config();
 
 const PORT = 3001;
 const app = express();
+const saltRounds = 10;
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(express.json());
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(
+    cors({
+        origin: ["http://localhost:3000"],
+        methods: ["GET", "POST"],
+        credentials: true,
+    })
+);
+app.use(
+    session({
+        key: "userId",
+        secret: "subscribe",
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            expires: 60 * 60 * 24 * 1000,
+        },
+    })
+);
 
 //Connect database
 const database = mysql.createPool({
@@ -280,6 +305,92 @@ app.get("/getAllFeeds", (req, res) => {
 
 app.get("/", (req, res) => {
     console.log("SERVER connected");
+});
+
+app.post("/api/register", (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    const password2 = req.body.password2;
+
+    if (password === password2)
+        database.query(
+            "SELECT * FROM users WHERE username = ?;",
+            username,
+            (err, result) => {
+                if (err) {
+                    res.send({ message: err });
+                }
+
+                if (result.length > 0) {
+                    res.send({ message: "Username existed!" });
+                } else {
+                    bcrypt.hash(password, saltRounds, (err, hash) => {
+                        if (err) {
+                            console.log(err);
+                        }
+
+                        database.query(
+                            "INSERT INTO users (username, password) VALUES (?,?)",
+                            [username, hash],
+                            (err, result) => {
+                                if (err) console.log(err);
+                                else res.send(result);
+                            }
+                        );
+                    });
+                }
+            }
+        );
+    else res.send({ message: "Password confirm doesnt match!" });
+});
+
+app.get("/api/login", (req, res) => {
+    if (req.session.token) {
+        res.send({ loggedIn: true, user: req.session.token });
+    } else {
+        res.send({ loggedIn: false });
+    }
+});
+
+app.post("/api/login", (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+
+    database.query(
+        "SELECT * FROM users WHERE username = ?;",
+        username,
+        (err, result) => {
+            if (err) {
+                res.send({ err: err });
+            }
+
+            if (result.length > 0) {
+                bcrypt.compare(
+                    password,
+                    result[0].password,
+                    (error, response) => {
+                        if (response) {
+                            req.session.token = "abc" + result[0].password;
+                            // console.log(req.session.token);
+                            res.send(result);
+                        } else {
+                            res.send({
+                                message: "Wrong username/password combination!",
+                            });
+                        }
+                    }
+                );
+            } else {
+                res.send({ message: "User doesn't exist" });
+            }
+        }
+    );
+});
+
+app.get("/api/logout", (req, res) => {
+    req.session.destroy(null);
+    res.clearCookie("userId");
+    res.send({ message: "logout" });
 });
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));

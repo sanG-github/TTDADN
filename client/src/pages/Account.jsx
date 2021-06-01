@@ -1,7 +1,25 @@
 import "../styles/Account.css";
 import React, { useState } from "react";
+import { notification } from "antd";
+import { SmileOutlined } from "@ant-design/icons";
+import Axios from "axios";
 
-const Account = () => {
+Axios.defaults.withCredentials = true;
+
+const openNotification = (message, description, isOk) => {
+    let icon;
+    if (!isOk)
+        icon = <SmileOutlined rotate={180} style={{ color: "#eb2f96" }} />;
+    else icon = <SmileOutlined style={{ color: "#108ee9" }} />;
+
+    notification.open({
+        message,
+        description,
+        icon,
+    });
+};
+
+const Account = (props) => {
     const [currentView, setCurentView] = useState("logIn");
 
     const handleSignUp = (e) => {
@@ -10,7 +28,27 @@ const Account = () => {
         const password = document.getElementById("password").value;
         const password2 = document.getElementById("password2").value;
 
-        console.log(username, password, password2);
+        Axios.post(`http://localhost:3001/api/register`, {
+            username,
+            password,
+            password2,
+        }).then((response) => {
+            if (response.data.message)
+                openNotification(
+                    "Something happened!",
+                    response.data.message,
+                    false
+                );
+            else {
+                openNotification(
+                    "Register successfully!",
+                    `Hello new user: ${username}`,
+                    true
+                );
+                setCurentView("logIn");
+            }
+            console.log(response);
+        });
     };
 
     const handleLogIn = (e) => {
@@ -18,7 +56,25 @@ const Account = () => {
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
 
-        console.log(username, password);
+        Axios.post(`http://localhost:3001/api/login`, {
+            username,
+            password,
+        }).then((response) => {
+            if (response.data.message)
+                openNotification(
+                    "Something happened!",
+                    response.data.message,
+                    false
+                );
+            else {
+                openNotification(
+                    "Login successfully!",
+                    `Welcome back ${response.data[0].username}`,
+                    true
+                );
+                props.setLoggedIn(true);
+            }
+        });
     };
 
     const SignUpForm = () => {

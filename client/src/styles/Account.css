@@ -1,8 +1,3 @@
-* {
-    font-family: Jura, Arial;
-    font-weight: 400;
-}
-
 body {
     margin: 0;
     padding: 0;
@@ -19,6 +14,8 @@ p {
 }
 
 section#entry-page {
+    font-family: Jura, Arial;
+    font-weight: 400;
     display: grid;
     grid-template-columns: 1fr minmax(200px, 400px) 1fr;
     grid-template-rows: 1fr minmax(auto, 1fr) 1fr;
