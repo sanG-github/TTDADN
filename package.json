@@ -12,6 +12,7 @@
     "dotenv": "^9.0.2",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
+    "firebase-admin": "^9.9.0",
     "mqtt": "^4.2.6",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.7",
