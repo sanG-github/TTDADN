@@ -44,7 +44,7 @@ app.use(
 const database = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "sanglaso1",
+    password: "quan0402",
     database: "DADN",
 });
 
