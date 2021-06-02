@@ -88,7 +88,7 @@ class SiderDemo extends React.Component {
                 </Switch>
                 </div>
               </Content>
-              <Footer style={{ textAlign: 'center' }}>Smart Tomato Garden</Footer>
+              <Footer style={{ textAlign: 'center' }}>@ Smart Tomatoes Garden</Footer>
             </Layout>
           </Layout>
         </Router>

@@ -47,9 +47,6 @@ function publishData(datum,value) {
     console.log("Success")
 }
 
-
-
-
 function Led({datum}){
 
     function onChange(value){

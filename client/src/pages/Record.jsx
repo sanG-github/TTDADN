@@ -30,11 +30,12 @@ function Record() {
 
             <div className="selector">
                 Chọn      
-                <Select defaultValue="device" style={{ width: 120 }} onChange={handleChange} style={{ width: 200, margin: '0 20px',}}>
+                <Select defaultValue="device" onChange={handleChange} style={{ width: 200, margin: '0 20px',}}>
                     <Option value="device">Dữ liệu thiết bị</Option>
                     <Option value="temperature">Dữ liệu nhiệt độ</Option>
                     <Option value="moisture">Dữ liệu độ ẩm</Option>
                     <Option value="light">Dữ liệu cường độ ánh sáng</Option>
+                    <Option value="humidity">Dữ liệu độ ẩm không khí</Option>
                 
                 </Select>
             </div>

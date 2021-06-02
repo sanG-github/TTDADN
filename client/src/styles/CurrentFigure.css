@@ -21,8 +21,7 @@
 }
 
 .Figure-Block {
-    margin: 30px 0;
-    width: 100%;
+    margin: 30px auto;
     display: flex;
     flex-direction: row;
     justify-content: space-between;

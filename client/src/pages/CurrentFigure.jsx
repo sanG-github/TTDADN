@@ -105,8 +105,8 @@ function CurrentFigure() {
             <div className="Figure-Block">
                 <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={temperatureImg} alt="" />  Nhiệt độ : <p style={ (temp >= 21 && temp <= 35 )? {color:'#08f25e'} : {color:'#ff3333'}}>{temp} độ C</p></div>
                 <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={lightImg} alt="" />  Cường độ ánh sáng : <p style={ (light.data >= 650 && light.data <= 850 )? {color:'#08f25e'} : {color:'#ff3333'}}>{light.data}</p> </div>
-                <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={moistureImg} alt="" />  Độ ẩm đất : <p style={ (moisture.data >= 80 && moisture.data <= 60 )? {color:'#08f25e'} : {color:'#ff3333'}} >{moisture.data} {moisture.unit}</p></div>
-                <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={humidityImg} alt="" />  Độ ẩm không khí : <p style={ (humidity >= 717 && moisture.data <= 818 )? {color:'#08f25e'} : {color:'#ff3333'}}>{humidity} %</p></div>
+                <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={moistureImg} alt="" />  Độ ẩm đất : <p style={ (moisture.data >= 60 && moisture.data <= 70 )? {color:'#08f25e'} : {color:'#ff3333'}} >{moisture.data} {moisture.unit}</p></div>
+                <div className="Figure" ><img className="img" style={{width: "30px", margin: "0 5px"}} src={humidityImg} alt="" />  Độ ẩm không khí : <p style={ (humidity >= 50 && humidity <= 80 )? {color:'#08f25e'} : {color:'#ff3333'}}>{humidity} %</p></div>
             </div>
         </div>
     )

@@ -6,6 +6,7 @@ const http = require("http");
 const socket = require("socket.io");
 const cors = require("cors");
 const mysql = require('mysql');
+const { getDate } = require("date-fns");
 require("dotenv").config();
 
 const PORT = 3001;
@@ -26,7 +27,20 @@ const database = mysql.createPool(
 )
 
 app.get("/statistic/temperature",(req,res)=>{
-    const sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature GROUP BY day(datetime)";
+    var sqlSelect = ""
+    console.log(req.query)
+    if(req.query){
+
+        var from = req.query.from.split(' ')
+        var to = req.query.to.split(' ')
+        var start = [from[1],from[2],from[3]].join(' ')
+        var end = [to[1],to[2],to[3]].join(' ')
+
+        sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime) `;
+    }
+    else {
+        sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature GROUP BY day(datetime) GROUP BY day(datetime) ORDER BY day(datetime)";
+    }
     database.query(sqlSelect, (err, result) => {
       if (err) {
         console.log(err);
@@ -36,7 +50,45 @@ app.get("/statistic/temperature",(req,res)=>{
 })
 
 app.get("/statistic/moisture",(req,res)=>{
-    const sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture GROUP BY day(datetime)";
+    var sqlSelect = ""
+    console.log(req.query)
+    if(req.query){
+
+        var from = req.query.from.split(' ')
+        var to = req.query.to.split(' ')
+        var start = [from[1],from[2],from[3]].join(' ')
+        var end = [to[1],to[2],to[3]].join(' ')
+
+        sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime)`;
+    }
+    else {
+        sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture GROUP BY day(datetime) ORDER BY day(datetime)";
+    }
+   
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+})
+
+app.get("/statistic/humidity",(req,res)=>{
+    var sqlSelect = ""
+    console.log(req.query)
+    if(req.query){
+
+        var from = req.query.from.split(' ')
+        var to = req.query.to.split(' ')
+        var start = [from[1],from[2],from[3]].join(' ')
+        var end = [to[1],to[2],to[3]].join(' ')
+
+        sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime)`;
+    }
+    else {
+        sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity GROUP BY day(datetime) ORDER BY day(datetime)";
+    }
+   
     database.query(sqlSelect, (err, result) => {
       if (err) {
         console.log(err);
@@ -67,6 +119,16 @@ app.get("/temperature", (req, res) => {
 
 app.get("/moisture", (req, res) => {
     const sqlSelect = "SELECT * FROM `moisture`";
+    database.query(sqlSelect, (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    });
+});
+
+app.get("/humidity", (req, res) => {
+    const sqlSelect = "SELECT * FROM `humidity`";
     database.query(sqlSelect, (err, result) => {
       if (err) {
         console.log(err);
@@ -198,17 +260,38 @@ io.on("connection",  (socket) => {
         switch(values.name){
             case 'SOIL' : table = 'moisture';break;
             case 'TEMP-HUMID' : table = 'temperature';break;
+            case 'LIGHT' : table = 'light';break;
             default : break;
-        }
+        } 
         
         if(table != ''){
-            const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
-            database.query(sqlSelect, (err, result) => {
-                if (err) {
-                    console.log(err);
-                }
-                console.log('Insert success')
-            });
+
+            if(table == 'temperature'){
+                var records = values.data.split('-');
+                const sqlSelect1 = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(records[0])+")";
+                const sqlSelect2 = "INSERT `humidity` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(records[1])+")";
+                database.query(sqlSelect1, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log('Insert success')
+                });
+                database.query(sqlSelect2, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log('Insert success')
+                });
+            }
+            else {
+                const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
+                database.query(sqlSelect, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log('Insert success')
+                });
+            } 
         }
         
 

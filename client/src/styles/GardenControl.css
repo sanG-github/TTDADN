@@ -1,7 +1,7 @@
 
 
 .Garden {
-    width: 50%;
+    width: 270px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(2,120px);

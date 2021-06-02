@@ -16,6 +16,10 @@ GET: '/moisture':               Nhận danh sách các bản ghi dữ liệu v�
 GET: '/constrain':              Nhận danh sách các ràng buộc thông số được lưu ở Database
 GET: '/constrain?type=[type]':  Nhận ràng buộc thông số được chỉ định được lưu ở Database với [type] : loại thông số muốn lấy ràng buộc (temperature, light, moisture)
 
+GET: '/statistic/temperature?from=[stateDate]&to=[endDate]':    Nhận về giá trị trung bình theo ngày của chỉ số từ startDate đên endDate.
+GET: '/statistic/light?from=[stateDate]&to=[endDate]':          Nhận về giá trị trung bình theo ngày của chỉ số từ startDate đên endDate.               
+GET: '/statistic/moisture?from=[stateDate]&to=[endDate]':       Nhận về giá trị trung bình theo ngày của chỉ số từ startDate đên endDate.              
+
 POST: '/addConstrain'           Thêm 1 ràng buộc thông số vào database.
 POST: '/setConstrain'           Thêm 1 ràng buộc thông số vào database.
 
