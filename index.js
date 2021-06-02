@@ -254,20 +254,22 @@ io.on("connection", (socket) => {
                 break;
         }
 
-        const sqlSelect =
-            "INSERT `" +
-            table +
-            "` (`inputId`,`record`) VALUES (" +
-            parseInt(values.id) +
-            "," +
-            parseInt(values.data) +
-            ")";
-        database.query(sqlSelect, (err, result) => {
-            if (err) {
-                console.log(err);
-            }
-            console.log("Insert success");
-        });
+        if (table != "") {
+            const sqlSelect =
+                "INSERT `" +
+                table +
+                "` (`inputId`,`record`) VALUES (" +
+                parseInt(values.id) +
+                "," +
+                parseInt(values.data) +
+                ")";
+            database.query(sqlSelect, (err, result) => {
+                if (err) {
+                    console.log(err);
+                }
+                console.log("Insert success");
+            });
+        }
 
         socket.emit("feedFromServer2", {
             topic: topic,
