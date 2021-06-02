@@ -14,6 +14,13 @@ const bcrypt = require("bcrypt");
 
 const admin = require("firebase-admin");
 const serviceAccount = require("./smarttomatofarm-firebase-adminsdk-j0civ-24e81aa790.json");
+const registrationToken =
+  "ceYpnIiuTSy3dR_dzjBQ1R:APA91bHS7ZELu_e8AxiVXAxCMrDsRibAztzb8_G9iT8zFbj-GKgNKbm4GeegSq4oFbIlRbVNL9Jm4FpDmQnnECh_HXBQLRkPp-lw8679elSgRL_pSHz8MpFsoejn9-zpy1ocPkHpsp9F";
+
+const alertEvents = require('events');
+const alertEmitter = new alertEvents.EventEmitter();
+
+const e = require("express");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -50,8 +57,8 @@ app.use(
 const database = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "sanglaso1",
-  database: "DADN",
+  password: "victory",
+  database: "company",
 });
 
 app.get("/device", (req, res) => {
@@ -416,39 +423,42 @@ app.get("/api/logout", (req, res) => {
 var constrain = {
   moisture: {
     upper_bound: 0,
-    lower_bound: 0
+    lower_bound: 0,
   },
   temperature: {
     upper_bound: 0,
-    lower_bound: 0
+    lower_bound: 0,
   },
   light: {
     upper_bound: 0,
-    lower_bound: 0
-  }
+    lower_bound: 0,
+  },
 };
 
-async function loadConstrain(){
+async function loadConstrain() {
   let sqlSelect = "SELECT * FROM `constrain` WHERE type = ";
+  var re;
   database.query(sqlSelect, (err, result) => {
     if (err) {
       console.log(err);
     }
     console.log(result);
+    re = JSON.parse(result);
   });
-  result = JSON.parse(result);
-  for (let index = 0; index < result.length; index++) {
-    let cur = result[index];
-    constrain[cur.type].upper_bound = cur['upper-bound'];
-    constrain[cur.type].lower_bound = cur['lower-bound'];   
-  }
+
+  // for (let index = 0; index < re.length; index++) {
+  //   let cur = re[index];
+  //   constrain[cur.type].upper_bound = cur['upper-bound'];
+  //   constrain[cur.type].lower_bound = cur['lower-bound'];
+  // }
   console.log(constrain);
-  
 }
 
-loadConstrain();
+//loadConstrain();
 
-async function checkConstrain(type, data){
+var isAlert = false;
+
+async function checkConstrain(type, data) {
   const message = {
     data: {
       title: "Cảnh báo",
@@ -456,51 +466,98 @@ async function checkConstrain(type, data){
       alert: "true",
       moisture: "",
       temperature: "",
-      light: ""
+      light: "",
     },
     token: registrationToken,
   };
-  if(constrain[type].lower_bound > data){
-    message.data[type] = "lower_bound"
+  if (constrain[type].lower_bound > data) {
+    message.data[type] = "lower_bound";
     sendMessage(message);
-  }
-  else if(constrain[type].upper_bound < data){
-    message.data[type] = "upper_bound"
+   
+  } else if (constrain[type].upper_bound < data) {
+    message.data[type] = "upper_bound";
     sendMessage(message);
+ 
   }
-  
 }
 
+//test sendmessage
+app.get("/sendmessage", (req, res) => {
+  
+  const message = {
+    data: {
+      title: "Cảnh báo",
+      body: "Tình trạng khu vườn không tốt. Hãy xác nhận công tác.",
+      alert: "true",
+      moisture: "",
+      temperature: "",
+      light: "",
+    },
+    token: registrationToken,
+  };
+  sendMessage(message);
+})
 
-const registrationToken =
-    "ceYpnIiuTSy3dR_dzjBQ1R:APA91bHS7ZELu_e8AxiVXAxCMrDsRibAztzb8_G9iT8zFbj-GKgNKbm4GeegSq4oFbIlRbVNL9Jm4FpDmQnnECh_HXBQLRkPp-lw8679elSgRL_pSHz8MpFsoejn9-zpy1ocPkHpsp9F";
-
-
-
+var waitAppRespone;
 
 async function sendMessage(message) {
-  admin
-    .messaging()
-    .send(message)
-    .then((response) => {
-      // Response is a message ID string.
-      console.log("Successfully sent message:", response);
-    })
-    .catch((error) => {
-      console.log("Error sending message:", error);
-    });
+  // admin
+  //   .messaging()
+  //   .send(message)
+  //   .then((response) => {
+  //     // Response is a message ID string.
+  //     console.log("Successfully sent message:", response);
+  //   })
+  //   .catch((error) => {
+  //     console.log("Error sending message:", error);
+  //   });
+  isAlert = true;
+  waitAppRespone = setTimeout(function () {
+    console.log("run !");
+    if (isAlert == true && appRespone == "pending") {
+      alertEmitter.emit("runTask", true);
+    }
+    
+  }, 1000 * 10);
 }
 
 //sendMessage();
+var appRespone = "pending";
 
 app.post("/alertprocessing", (req, res) => {
-  if(req.body.accept){
-    console.log("alertprocessing: ok")
-  }
-  else{
-    console.log("alertprocessing: no")
+  isAlert = true;
+  if (isAlert) {
+    appRespone = "responded"
+    if (req.body.accept == "true") {
+      console.log("alertprocessing: ok");
+      alertEmitter.emit("runTask", true);
+      res.json({ id: req.body.id, status: "processing" });
+    } else {
+      isAlert = false;
+      console.log("alertprocessing: no");
+      alertEmitter.emit("runTask", false);
+      res.json({ id: req.body.id, status: "rejected" });
+    }
+
+  } else {
+    res.json({ id: "something wrong", status: "something wrong" });
   }
 });
+
+let runTask = (respone) => {
+  isAlert = false;
+  appRespone = "pending";
+  if (respone) {
+    console.log("runTask");
+  }
+  else{
+    console.log("cancel Task")
+  }
+
+  clearTimeout(waitAppRespone);
+
+}
+alertEmitter.on("runTask", runTask);
 
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
