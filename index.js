@@ -207,13 +207,13 @@ app.get("/currentFigure", async (req, res) => {
     await axios
         .get("https://io.adafruit.com/api/v2/CSE_BBC1/feeds/bk-iot-light")
         .then((response) => {
-            light = JSON.parse(response.data.last_value);
+            light = JSON.parse(response.data.last_value).data;
         });
 
     await axios
         .get("https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-soil")
         .then((response) => {
-            moisture = JSON.parse(response.data.last_value);
+            moisture = JSON.parse(response.data.last_value).data;
         });
 
     await axios

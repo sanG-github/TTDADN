@@ -8,9 +8,10 @@ import lightImg from "../img/light.png";
 import temperatureImg from "../img/temperature.png";
 import moistureImg from "../img/moisture.png";
 import humidityImg from "../img/humidity.png";
-const io = require("socket.io-client");
-require("dotenv").config();
 
+const io = require("socket.io-client");
+
+require("dotenv").config();
 const socket = io("http://localhost:3001", {
     transports: ["websocket"],
     extraHeaders: {
@@ -19,15 +20,23 @@ const socket = io("http://localhost:3001", {
 });
 
 function CurrentFigure() {
-    const [temp, setTemp] = useState({});
+    const [temp, setTemp] = useState(0);
     const [humidity, setHumidity] = useState(0);
     const [light, setLight] = useState({ data: 0 });
     const [moisture, setMoisture] = useState({ data: 0 });
 
     useEffect(() => {
+        axios.get("http://localhost:3001/currentFigure").then((res) => {
+            setTemp(res.data.temp);
+            setHumidity(res.data.humidity);
+            setLight({ data: res.data.light });
+            setMoisture({ data: res.data.moisture });
+        });
+
         socket.on("feedFromServer2", (data) => {
             try {
                 const res = JSON.parse(data.data);
+                console.log("feedFromServer2", res);
 
                 switch (res.name) {
                     case "TEMP-HUMID":
@@ -51,6 +60,7 @@ function CurrentFigure() {
         socket.on("feedFromServer", (data) => {
             try {
                 const res = JSON.parse(data.data);
+                console.log("feedFromServer", res);
 
                 switch (res.name) {
                     case "TEMP-HUMID":
