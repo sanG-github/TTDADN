@@ -19,7 +19,7 @@ const saltRounds = 10;
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 // app.use(cors({ origin: "http://localhost:3000" }));
 app.use(
     cors({
@@ -108,12 +108,12 @@ app.get("/statistic/humidity", (req, res) => {
             "SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity GROUP BY day(datetime) ORDER BY day(datetime)";
     }
 
-    database.query(sqlSelect, (err, result) => {
-        if (err) {
-            console.log(err);
-        }
-        res.send(result);
-    });
+    // database.query(sqlSelect, (err, result) => {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    //     res.send(result);
+    // });
 });
 
 app.get("/device", (req, res) => {
@@ -201,6 +201,32 @@ app.post("/setConstrain", (req, res) => {
     // );
 });
 
+app.get("/currentFigure", async (req, res) => {
+    let light, moisture, temp, humidity;
+
+    await axios
+        .get("https://io.adafruit.com/api/v2/CSE_BBC1/feeds/bk-iot-light")
+        .then((response) => {
+            light = JSON.parse(response.data.last_value);
+        });
+
+    await axios
+        .get("https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-soil")
+        .then((response) => {
+            moisture = JSON.parse(response.data.last_value);
+        });
+
+    await axios
+        .get("https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-temp-humid")
+        .then((response) => {
+            var values = JSON.parse(response.data.last_value);
+            temp = values.data.split("-")[0];
+            humidity = values.data.split("-")[1];
+        });
+
+    res.send({ light, moisture, temp, humidity });
+});
+
 // Socket setup
 const server = http.createServer(app);
 const io = socket(server);
@@ -224,8 +250,8 @@ async function updateClient() {
             password: res.data.keyBBC1,
         };
 
-        console.log(options);
-        console.log(options2);
+        // console.log(options);
+        // console.log(options2);
 
         client = await mqtt.connect("mqtt://" + options.host, options);
 
@@ -239,38 +265,32 @@ async function updateClient() {
             console.log("mqtt: server CSE_BBC1 connected!");
         });
     });
-}
 
-updateClient();
-
-axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
-    const feeds = res.data;
-    console.log(`----------------------\nAll feeds from ${process.env.USERX}:`);
-    feeds.map((feed) => {
-        console.log("\t", feed.name);
-        client.subscribe(process.env.USERX + "/feeds/" + feed.name);
+    axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
+        const feeds = res.data;
+        console.log(
+            `----------------------\nAll feeds from ${process.env.USERX}:`
+        );
+        feeds.map((feed) => {
+            console.log("\t", feed.name);
+            client.subscribe(process.env.USERX + "/feeds/" + feed.name);
+        });
     });
-});
 
-axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
-    const feeds = res.data;
-    console.log(
-        `----------------------\nAll feeds from ${process.env.USERX_02}:`
-    );
-    feeds.map((feed) => {
-        console.log("\t", feed.name);
-        client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
+    axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
+        const feeds = res.data;
+        console.log(
+            `----------------------\nAll feeds from ${process.env.USERX_02}:`
+        );
+        feeds.map((feed) => {
+            console.log("\t", feed.name);
+            client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
+        });
     });
-});
-
-io.on("connection", (socket) => {
-    console.log("socketIO: new client connected ");
 
     // message when data changed from
     client.on("message", function (topic, message) {
         // in ra màn hình console 1 message ở định dạng string
-        console.log("Message from server CSE_BBC");
-
         console.log(
             "----------------------\nTopic: ",
             topic,
@@ -342,10 +362,11 @@ io.on("connection", (socket) => {
             }
         }
 
-        socket.emit("feedFromServer", {
-            topic: topic,
-            data: message.toString(),
-        });
+        ioSocket &&
+            ioSocket.emit("feedFromServer", {
+                topic: topic,
+                data: message.toString(),
+            });
 
         // đóng kết nối của client
         // client.end();
@@ -353,9 +374,6 @@ io.on("connection", (socket) => {
 
     client2.on("message", function (topic, message) {
         // in ra màn hình console 1 message ở định dạng string
-
-        console.log("Message from server CSE_BBC1");
-
         console.log(
             "----------------------\nTopic: ",
             topic,
@@ -394,27 +412,22 @@ io.on("connection", (socket) => {
             });
         }
 
-        socket.emit("feedFromServer", {
-            topic: topic,
-            data: message.toString(),
-        });
+        ioSocket &&
+            ioSocket.emit("feedFromServer", {
+                topic: topic,
+                data: message.toString(),
+            });
 
         // đóng kết nối của client
         // client.end();
     });
+}
+var ioSocket;
+
+io.on("connection", (socket) => {
+    console.log("socketIO: new client connected ");
 
     socket.on("changeFeedData", (patternData) => {
-        /* data has this format */
-        // const patternData = `{
-        //     "topic":"quan260402/feeds/bk-iot-led",
-        //     "message":{
-        //         "id":1,
-        //         "name":"LED",
-        //         "data":911,
-        //         "unit":""
-        //     }
-        // }`;
-
         try {
             const data = JSON.parse(patternData);
             console.log(JSON.parse(patternData));
@@ -427,6 +440,8 @@ io.on("connection", (socket) => {
             console.log(err);
         }
     });
+
+    ioSocket = socket;
 });
 
 app.get("/getAllFeeds", (req, res) => {
@@ -526,6 +541,9 @@ app.get("/api/logout", (req, res) => {
     res.send({ message: "logout" });
 });
 
-server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+server.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
+    updateClient();
+});
 
 // ----------------------------------
