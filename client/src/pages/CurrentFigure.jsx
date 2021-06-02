@@ -29,21 +29,18 @@ function CurrentFigure() {
 
     useEffect(() => {
         axios.get('https://io.adafruit.com/api/v2/CSE_BBC1/feeds/bk-iot-light').then((response) => {
-            console.log(response.data.last_value);
             setLight(JSON.parse(response.data.last_value))
         })
     },[]);
 
     useEffect(() => {
         axios.get('https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-soil').then((response) => {
-            console.log(response.data.last_value);
             setMoisture(JSON.parse(response.data.last_value))
         })
     },[]);
 
     useEffect(() => {
         axios.get('https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-temp-humid').then((response) => {
-            console.log(response.data.last_value);
             var values = JSON.parse(response.data.last_value);
             setTemp(values.data.split('-')[0]); 
             setHumidity(values.data.split('-')[1]); 
@@ -55,7 +52,7 @@ function CurrentFigure() {
             try {
                 
                 const res = JSON.parse(data.data)
-                console.log(res)
+                
                 switch(res.name){
                     case 'TEMP-HUMID' :
                                         setTemp(JSON.parse(data.data).data.split('-')[0]); 
@@ -66,7 +63,6 @@ function CurrentFigure() {
                     default : break;
                 }
             } catch (err) {
-                console.log(typeof data, data);
                 console.log(err)
             }
         });
@@ -77,7 +73,7 @@ function CurrentFigure() {
             try {
                 
                 const res = JSON.parse(data.data)
-                console.log(res)
+                
                 switch(res.name){
                     case 'TEMP-HUMID' :
                                         setTemp(JSON.parse(data.data).data.split('-')[0]); 
@@ -88,7 +84,6 @@ function CurrentFigure() {
                     default : break;
                 }
             } catch (err) {
-                console.log(typeof data, data);
                 console.log(err)
             }
         });
