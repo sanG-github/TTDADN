@@ -24,8 +24,8 @@ function CurrentFigure() {
  
     const [temp , setTemp] = useState(0);
     const [humidity , setHumidity] = useState(0);
-    const [light,setLight] = useState({});
-    const [moisture,setMoisture] = useState({});
+    const [light,setLight] = useState({data: 0});
+    const [moisture,setMoisture] = useState({data : 0});
 
     useEffect(() => {
         axios.get('https://io.adafruit.com/api/v2/CSE_BBC1/feeds/bk-iot-light').then((response) => {
@@ -44,7 +44,6 @@ function CurrentFigure() {
     useEffect(() => {
         axios.get('https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-temp-humid').then((response) => {
             console.log(response.data.last_value);
-
             var values = JSON.parse(response.data.last_value);
             setTemp(values.data.split('-')[0]); 
             setHumidity(values.data.split('-')[1]); 
