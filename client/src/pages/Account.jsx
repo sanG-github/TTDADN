@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { notification } from "antd";
 import { SmileOutlined } from "@ant-design/icons";
 import Axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLeaf } from "@fortawesome/free-solid-svg-icons";
 
 Axios.defaults.withCredentials = true;
 
@@ -35,14 +37,14 @@ const Account = (props) => {
         }).then((response) => {
             if (response.data.message)
                 openNotification(
-                    "Something happened!",
+                    "Đã có lỗi xảy ra.",
                     response.data.message,
                     false
                 );
             else {
                 openNotification(
-                    "Register successfully!",
-                    `Hello new user: ${username}`,
+                    "Đặng ký thành công",
+                    `Xin chào, ${username}`,
                     true
                 );
                 setCurentView("logIn");
@@ -62,14 +64,14 @@ const Account = (props) => {
         }).then((response) => {
             if (response.data.message)
                 openNotification(
-                    "Something happened!",
+                    "Đã có lỗi xảy ra.",
                     response.data.message,
                     false
                 );
             else {
                 openNotification(
-                    "Login successfully!",
-                    `Welcome back ${response.data[0].username}`,
+                    "Đăng nhập thành công",
+                    `Chào mừng đã trở lại ${response.data[0].username}`,
                     true
                 );
                 props.setLoggedIn(true);
@@ -80,9 +82,10 @@ const Account = (props) => {
     const SignUpForm = () => {
         return (
             <form>
-                <h2>Sign Up!</h2>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
+                <h2>Đăng ký</h2>
                 <fieldset>
-                    <legend>Create Account</legend>
+                    <legend>Tạo tài khoản</legend>
                     <ul>
                         <li>
                             <label>Username:</label>
@@ -98,9 +101,9 @@ const Account = (props) => {
                         </li>
                     </ul>
                 </fieldset>
-                <button onClick={(e) => handleSignUp(e)}>Submit</button>
+                <button onClick={(e) => handleSignUp(e)}>Tạo</button>
                 <button type="button" onClick={() => setCurentView("logIn")}>
-                    Have an Account?
+                    Đăng nhập
                 </button>
             </form>
         );
@@ -109,9 +112,10 @@ const Account = (props) => {
     const LogInForm = () => {
         return (
             <form>
-                <h2>Welcome Back!</h2>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
+                <h2>Chào mừng đã chở lại Vườn!</h2>
                 <fieldset>
-                    <legend>Log In</legend>
+                    <legend>Đăng nhập</legend>
                     <ul>
                         <li>
                             <label for="username">Username:</label>
@@ -127,14 +131,14 @@ const Account = (props) => {
                                 onClick={() => setCurentView("PWReset")}
                                 href="#"
                             >
-                                Forgot Password?
+                                Quên mật khẩu ?
                             </a>
                         </li>
                     </ul>
                 </fieldset>
-                <button onClick={(e) => handleLogIn(e)}>Login</button>
+                <button onClick={(e) => handleLogIn(e)}>Đăng nhập</button>
                 <button type="button" onClick={() => setCurentView("signUp")}>
-                    Create an Account
+                    Tạo tài khoản mới
                 </button>
             </form>
         );
@@ -143,12 +147,13 @@ const Account = (props) => {
     const PWResetForm = () => {
         return (
             <form>
-                <h2>Reset Password</h2>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
+                <h2>Đặt lại mật khẩu</h2>
                 <fieldset>
-                    <legend>Password Reset</legend>
+                    <legend>Đặt lại mật khẩu</legend>
                     <ul>
                         <li>
-                            <em>A reset link will be sent to your inbox!</em>
+                            <em>Đường link đặt lại mật khẩu đã được gữi đến mail của bạn</em>
                         </li>
                         <li>
                             <label for="email">Email:</label>
@@ -156,9 +161,9 @@ const Account = (props) => {
                         </li>
                     </ul>
                 </fieldset>
-                <button>Send Reset Link</button>
+                <button>Gữi link đặt lại mật khẩu</button>
                 <button type="button" onClick={() => setCurentView("logIn")}>
-                    Go Back
+                    Quay lại
                 </button>
             </form>
         );
