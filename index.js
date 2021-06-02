@@ -14,6 +14,9 @@ const bcrypt = require("bcrypt");
 
 const admin = require("firebase-admin");
 const serviceAccount = require("./smarttomatofarm-firebase-adminsdk-j0civ-24e81aa790.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 require("dotenv").config();
 
@@ -124,12 +127,17 @@ app.post("/setConstrain", (req, res) => {
   //     else console.log("success");
   //     }
   // );
+
+  constrain[values.type].upper_bound = values.upper_bound;
+  constrain[values.type].lower_bound = values.lower_bound;
+  console.log(constrain[values.type]);
 });
 
 // Socket setup
 const server = http.createServer(app);
 const io = socket(server);
 var client, client2;
+
 // MQTT
 // Update Key
 async function updateClient() {
@@ -228,6 +236,8 @@ io.on("connection", (socket) => {
       });
     }
 
+    checkConstrain(table, values.data);
+
     socket.emit("feedFromServer", {
       topic: topic,
       data: message.toString(),
@@ -271,6 +281,8 @@ io.on("connection", (socket) => {
       }
       console.log("Insert success");
     });
+
+    checkConstrain(table, values.data);
 
     socket.emit("feedFromServer2", {
       topic: topic,
@@ -400,22 +412,73 @@ app.get("/api/logout", (req, res) => {
   res.send({ message: "logout" });
 });
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-async function sendMessage() {
-  const registrationToken =
-    "ceYpnIiuTSy3dR_dzjBQ1R:APA91bHS7ZELu_e8AxiVXAxCMrDsRibAztzb8_G9iT8zFbj-GKgNKbm4GeegSq4oFbIlRbVNL9Jm4FpDmQnnECh_HXBQLRkPp-lw8679elSgRL_pSHz8MpFsoejn9-zpy1ocPkHpsp9F";
+//------------
+var constrain = {
+  moisture: {
+    upper_bound: 0,
+    lower_bound: 0
+  },
+  temperature: {
+    upper_bound: 0,
+    lower_bound: 0
+  },
+  light: {
+    upper_bound: 0,
+    lower_bound: 0
+  }
+};
 
+async function loadConstrain(){
+  let sqlSelect = "SELECT * FROM `constrain` WHERE type = ";
+  database.query(sqlSelect, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    console.log(result);
+  });
+  result = JSON.parse(result);
+  for (let index = 0; index < result.length; index++) {
+    let cur = result[index];
+    constrain[cur.type].upper_bound = cur['upper-bound'];
+    constrain[cur.type].lower_bound = cur['lower-bound'];   
+  }
+  console.log(constrain);
+  
+}
+
+loadConstrain();
+
+async function checkConstrain(type, data){
   const message = {
     data: {
-      title: "Canh bao",
-      body: "canh bao canh bao",
+      title: "Cảnh báo",
+      body: "Tình trạng khu vườn không tốt. Hãy xác nhận công tác.",
       alert: "true",
+      moisture: "",
+      temperature: "",
+      light: ""
     },
     token: registrationToken,
   };
+  if(constrain[type].lower_bound > data){
+    message.data[type] = "lower_bound"
+    sendMessage(message);
+  }
+  else if(constrain[type].upper_bound < data){
+    message.data[type] = "upper_bound"
+    sendMessage(message);
+  }
+  
+}
 
+
+const registrationToken =
+    "ceYpnIiuTSy3dR_dzjBQ1R:APA91bHS7ZELu_e8AxiVXAxCMrDsRibAztzb8_G9iT8zFbj-GKgNKbm4GeegSq4oFbIlRbVNL9Jm4FpDmQnnECh_HXBQLRkPp-lw8679elSgRL_pSHz8MpFsoejn9-zpy1ocPkHpsp9F";
+
+
+
+
+async function sendMessage(message) {
   admin
     .messaging()
     .send(message)
@@ -428,7 +491,17 @@ async function sendMessage() {
     });
 }
 
-sendMessage();
+//sendMessage();
+
+app.post("/alertprocessing", (req, res) => {
+  if(req.body.accept){
+    console.log("alertprocessing: ok")
+  }
+  else{
+    console.log("alertprocessing: no")
+  }
+});
+
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
