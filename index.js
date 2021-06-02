@@ -44,80 +44,77 @@ app.use(
 const database = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "quan0402",
+    password: "sanglaso1",
     database: "DADN",
 });
 
-app.get("/statistic/temperature",(req,res)=>{
-    var sqlSelect = ""
-    console.log(req.query)
-    if(req.query){
-
-        var from = req.query.from.split(' ')
-        var to = req.query.to.split(' ')
-        var start = [from[1],from[2],from[3]].join(' ')
-        var end = [to[1],to[2],to[3]].join(' ')
+app.get("/statistic/temperature", (req, res) => {
+    var sqlSelect = "";
+    console.log(req.query);
+    if (req.query) {
+        var from = req.query.from.split(" ");
+        var to = req.query.to.split(" ");
+        var start = [from[1], from[2], from[3]].join(" ");
+        var end = [to[1], to[2], to[3]].join(" ");
 
         sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime) `;
-    }
-    else {
-        sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature GROUP BY day(datetime) GROUP BY day(datetime) ORDER BY day(datetime)";
+    } else {
+        sqlSelect =
+            "SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature GROUP BY day(datetime) GROUP BY day(datetime) ORDER BY day(datetime)";
     }
     database.query(sqlSelect, (err, result) => {
-      if (err) {
-        console.log(err);
-      }
-      res.send(result);
+        if (err) {
+            console.log(err);
+        }
+        res.send(result);
     });
-})
+});
 
-app.get("/statistic/moisture",(req,res)=>{
-    var sqlSelect = ""
-    console.log(req.query)
-    if(req.query){
-
-        var from = req.query.from.split(' ')
-        var to = req.query.to.split(' ')
-        var start = [from[1],from[2],from[3]].join(' ')
-        var end = [to[1],to[2],to[3]].join(' ')
+app.get("/statistic/moisture", (req, res) => {
+    var sqlSelect = "";
+    console.log(req.query);
+    if (req.query) {
+        var from = req.query.from.split(" ");
+        var to = req.query.to.split(" ");
+        var start = [from[1], from[2], from[3]].join(" ");
+        var end = [to[1], to[2], to[3]].join(" ");
 
         sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime)`;
+    } else {
+        sqlSelect =
+            "SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture GROUP BY day(datetime) ORDER BY day(datetime)";
     }
-    else {
-        sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture GROUP BY day(datetime) ORDER BY day(datetime)";
-    }
-   
+
     database.query(sqlSelect, (err, result) => {
-      if (err) {
-        console.log(err);
-      }
-      res.send(result);
+        if (err) {
+            console.log(err);
+        }
+        res.send(result);
     });
-})
+});
 
-app.get("/statistic/humidity",(req,res)=>{
-    var sqlSelect = ""
-    console.log(req.query)
-    if(req.query){
-
-        var from = req.query.from.split(' ')
-        var to = req.query.to.split(' ')
-        var start = [from[1],from[2],from[3]].join(' ')
-        var end = [to[1],to[2],to[3]].join(' ')
+app.get("/statistic/humidity", (req, res) => {
+    var sqlSelect = "";
+    console.log(req.query);
+    if (req.query) {
+        var from = req.query.from.split(" ");
+        var to = req.query.to.split(" ");
+        var start = [from[1], from[2], from[3]].join(" ");
+        var end = [to[1], to[2], to[3]].join(" ");
 
         sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime)`;
+    } else {
+        sqlSelect =
+            "SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity GROUP BY day(datetime) ORDER BY day(datetime)";
     }
-    else {
-        sqlSelect = "SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity GROUP BY day(datetime) ORDER BY day(datetime)";
-    }
-   
+
     database.query(sqlSelect, (err, result) => {
-      if (err) {
-        console.log(err);
-      }
-      res.send(result);
+        if (err) {
+            console.log(err);
+        }
+        res.send(result);
     });
-})
+});
 
 app.get("/device", (req, res) => {
     const sqlSelect = "SELECT * FROM `device`";
@@ -152,10 +149,10 @@ app.get("/moisture", (req, res) => {
 app.get("/humidity", (req, res) => {
     const sqlSelect = "SELECT * FROM `humidity`";
     database.query(sqlSelect, (err, result) => {
-      if (err) {
-        console.log(err);
-      }
-      res.send(result);
+        if (err) {
+            console.log(err);
+        }
+        res.send(result);
     });
 });
 
@@ -206,14 +203,13 @@ app.post("/setConstrain", (req, res) => {
 
 // Socket setup
 const server = http.createServer(app);
-const server2 = http.createServer(app);
-
 const io = socket(server);
-var client, client2;
 // MQTT
 // Update Key
+var client, client2;
+
 async function updateClient() {
-    await axios.get("http://dadn.esp32thanhdanh.link/").then((res) => {
+    await axios.get("http://dadn.esp32thanhdanh.link/").then(async (res) => {
         const options = {
             port: process.env.PORT,
             host: process.env.HOST,
@@ -228,13 +224,12 @@ async function updateClient() {
             password: res.data.keyBBC1,
         };
 
-        console.log(options)
-        console.log(options2)
+        console.log(options);
+        console.log(options2);
 
+        client = await mqtt.connect("mqtt://" + options.host, options);
 
-        client = mqtt.connect("mqtt://" + options.host, options);
-
-        client2 = mqtt.connect("mqtt://" + options2.host, options2);
+        client2 = await mqtt.connect("mqtt://" + options2.host, options2);
 
         client.on("connect", function () {
             console.log("mqtt: server CSE_BBC connected!");
@@ -285,41 +280,66 @@ io.on("connection", (socket) => {
 
         console.log(JSON.parse(message));
         const values = JSON.parse(message);
-        let table = ''
-        switch(values.name){
-            case 'SOIL' : table = 'moisture';break;
-            case 'TEMP-HUMID' : table = 'temperature';break;
-            case 'LIGHT' : table = 'light';break;
-            default : break;
-        } 
-        
-        if(table != ''){
-            if(table == 'temperature'){
-                var records = values.data.split('-');
-                const sqlSelect1 = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(records[0])+")";
-                const sqlSelect2 = "INSERT `humidity` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(records[1])+")";
+        let table = "";
+        switch (values.name) {
+            case "SOIL":
+                table = "moisture";
+                break;
+            case "TEMP-HUMID":
+                table = "temperature";
+                break;
+            case "LIGHT":
+                table = "light";
+                break;
+            default:
+                break;
+        }
+
+        if (table != "") {
+            if (table == "temperature") {
+                var records = values.data.split("-");
+                const sqlSelect1 =
+                    "INSERT `" +
+                    table +
+                    "` (`inputId`,`record`) VALUES (" +
+                    parseInt(values.id) +
+                    "," +
+                    parseInt(records[0]) +
+                    ")";
+                const sqlSelect2 =
+                    "INSERT `humidity` (`inputId`,`record`) VALUES (" +
+                    parseInt(values.id) +
+                    "," +
+                    parseInt(records[1]) +
+                    ")";
                 database.query(sqlSelect1, (err, result) => {
                     if (err) {
                         console.log(err);
                     }
-                    console.log('Insert success')
+                    console.log("Insert success");
                 });
                 database.query(sqlSelect2, (err, result) => {
                     if (err) {
                         console.log(err);
                     }
-                    console.log('Insert success')
+                    console.log("Insert success");
                 });
-            }
-            else {
-                const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
+            } else {
+                const sqlSelect =
+                    "INSERT `" +
+                    table +
+                    "` (`inputId`,`record`) VALUES (" +
+                    parseInt(values.id) +
+                    "," +
+                    parseInt(values.data) +
+                    ")";
                 database.query(sqlSelect, (err, result) => {
                     if (err) {
                         console.log(err);
                     }
-                    console.log('Insert success')
+                    console.log("Insert success");
                 });
-            } 
+            }
         }
 
         socket.emit("feedFromServer", {
@@ -335,7 +355,7 @@ io.on("connection", (socket) => {
         // in ra màn hình console 1 message ở định dạng string
 
         console.log("Message from server CSE_BBC1");
-        
+
         console.log(
             "----------------------\nTopic: ",
             topic,
@@ -345,23 +365,34 @@ io.on("connection", (socket) => {
 
         console.log(JSON.parse(message));
         const values = JSON.parse(message);
-        let table = ''
-        switch(values.name){
-            case 'SOIL' : table = 'moisture';break;
-            case 'TEMP-HUMID' : table = 'temperature';break;
-            default : break;
+        let table = "";
+        switch (values.name) {
+            case "SOIL":
+                table = "moisture";
+                break;
+            case "TEMP-HUMID":
+                table = "temperature";
+                break;
+            default:
+                break;
         }
-        
-        if(table != ''){
-            const sqlSelect = "INSERT `"+table+"` (`inputId`,`record`) VALUES ("+parseInt(values.id)+","+parseInt(values.data)+")";
+
+        if (table != "") {
+            const sqlSelect =
+                "INSERT `" +
+                table +
+                "` (`inputId`,`record`) VALUES (" +
+                parseInt(values.id) +
+                "," +
+                parseInt(values.data) +
+                ")";
             database.query(sqlSelect, (err, result) => {
                 if (err) {
                     console.log(err);
                 }
-                console.log('Insert success')
+                console.log("Insert success");
             });
         }
-        
 
         socket.emit("feedFromServer", {
             topic: topic,
@@ -371,8 +402,6 @@ io.on("connection", (socket) => {
         // đóng kết nối của client
         // client.end();
     });
-
-   
 
     socket.on("changeFeedData", (patternData) => {
         /* data has this format */
@@ -399,8 +428,6 @@ io.on("connection", (socket) => {
         }
     });
 });
-
-
 
 app.get("/getAllFeeds", (req, res) => {
     axios
