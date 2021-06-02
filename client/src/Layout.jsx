@@ -36,7 +36,6 @@ const SiderDemo = () => {
 
     useEffect(() => {
         axios.get("http://localhost:3001/api/login").then((res) => {
-            console.log(res.data);
             setLoggedIn(res.data.loggedIn);
         });
     }, []);

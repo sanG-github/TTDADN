@@ -205,24 +205,27 @@ app.get("/currentFigure", async (req, res) => {
     let light, moisture, temp, humidity;
 
     await axios
-        .get("https://io.adafruit.com/api/v2/CSE_BBC1/feeds/bk-iot-light")
-        .then((response) => {
-            light = JSON.parse(response.data.last_value).data;
-        });
-
-    await axios
-        .get("https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-soil")
-        .then((response) => {
-            moisture = JSON.parse(response.data.last_value).data;
-        });
-
-    await axios
-        .get("https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-temp-humid")
-        .then((response) => {
-            var values = JSON.parse(response.data.last_value);
-            temp = values.data.split("-")[0];
-            humidity = values.data.split("-")[1];
-        });
+        .all([
+            axios.get(
+                "https://io.adafruit.com/api/v2/CSE_BBC1/feeds/bk-iot-light"
+            ),
+            axios.get(
+                "https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-soil"
+            ),
+            axios.get(
+                "https://io.adafruit.com/api/v2/CSE_BBC/feeds/bk-iot-temp-humid"
+            ),
+        ])
+        .then(
+            axios.spread((lightRes, moistureRes, temp_humRes) => {
+                // do something with three responses
+                var values = JSON.parse(temp_humRes.data.last_value);
+                light = JSON.parse(lightRes.data.last_value).data;
+                moisture = JSON.parse(moistureRes.data.last_value).data;
+                temp = values.data.split("-")[0];
+                humidity = values.data.split("-")[1];
+            })
+        );
 
     res.send({ light, moisture, temp, humidity });
 });
@@ -413,7 +416,7 @@ async function updateClient() {
         }
 
         ioSocket &&
-            ioSocket.emit("feedFromServer", {
+            ioSocket.emit("feedFromServer2", {
                 topic: topic,
                 data: message.toString(),
             });
