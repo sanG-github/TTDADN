@@ -16,11 +16,12 @@ const admin = require("firebase-admin");
 const serviceAccount = require("./smarttomatofarm-firebase-adminsdk-j0civ-24e81aa790.json");
 const registrationToken =
   "ceYpnIiuTSy3dR_dzjBQ1R:APA91bHS7ZELu_e8AxiVXAxCMrDsRibAztzb8_G9iT8zFbj-GKgNKbm4GeegSq4oFbIlRbVNL9Jm4FpDmQnnECh_HXBQLRkPp-lw8679elSgRL_pSHz8MpFsoejn9-zpy1ocPkHpsp9F";
-
-const alertEvents = require('events');
+  const messageDeviceIot = require("./message-device-iot.json");
+const alertEvents = require("events");
 const alertEmitter = new alertEvents.EventEmitter();
 
 const e = require("express");
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -242,8 +243,9 @@ io.on("connection", (socket) => {
         console.log("Insert success");
       });
     }
-
-    checkConstrain(table, values.data);
+    if (isAlert == false) {
+      checkConstrain(table, values.data);
+    }
 
     socket.emit("feedFromServer", {
       topic: topic,
@@ -289,7 +291,9 @@ io.on("connection", (socket) => {
       console.log("Insert success");
     });
 
-    checkConstrain(table, values.data);
+    if (isAlert == false) {
+      checkConstrain(table, values.data);
+    }
 
     socket.emit("feedFromServer2", {
       topic: topic,
@@ -420,19 +424,54 @@ app.get("/api/logout", (req, res) => {
 });
 
 //------------
+var isAlert = false;
+
 var constrain = {
   moisture: {
-    upper_bound: 0,
-    lower_bound: 0,
+    upper_bound: 105,
+    lower_bound: 95,
   },
   temperature: {
-    upper_bound: 0,
-    lower_bound: 0,
+    upper_bound: 32,
+    lower_bound: 28,
   },
   light: {
-    upper_bound: 0,
-    lower_bound: 0,
+    upper_bound: 105,
+    lower_bound: 95,
   },
+  humid: {
+    upper_bound: 55,
+    lower_bound: 50,
+  },
+};
+
+var state = {
+  moisture: "lower_bound",
+  temperature: "",
+  light: "",
+  humid: "",
+};
+
+var messageAlert = {
+  data: {
+    title: "Cảnh báo",
+    body: "Tình trạng khu vườn không tốt. Hãy xác nhận công tác.",
+    alert: "true",
+    id: "dadn",
+    moisture: state.moisture,
+    temperature: state.temperature,
+    light: state.light,
+    humid: state.humid,
+  },
+  token: registrationToken,
+};
+
+var messageTaskCompleted = {
+  data: {
+    id: "dadn",
+    alert: "completed",
+  },
+  token: registrationToken,
 };
 
 async function loadConstrain() {
@@ -441,9 +480,10 @@ async function loadConstrain() {
   database.query(sqlSelect, (err, result) => {
     if (err) {
       console.log(err);
+    } else {
+      console.log(result);
+      re = JSON.parse(result);
     }
-    console.log(result);
-    re = JSON.parse(result);
   });
 
   // for (let index = 0; index < re.length; index++) {
@@ -456,109 +496,119 @@ async function loadConstrain() {
 
 //loadConstrain();
 
-var isAlert = false;
-
 async function checkConstrain(type, data) {
-  const message = {
-    data: {
-      title: "Cảnh báo",
-      body: "Tình trạng khu vườn không tốt. Hãy xác nhận công tác.",
-      alert: "true",
-      moisture: "",
-      temperature: "",
-      light: "",
-    },
-    token: registrationToken,
-  };
-  if (constrain[type].lower_bound > data) {
-    message.data[type] = "lower_bound";
-    sendMessage(message);
-   
-  } else if (constrain[type].upper_bound < data) {
-    message.data[type] = "upper_bound";
-    sendMessage(message);
- 
+  if (type == "temperature") {
+    let datath = data.split("-");
+    let dtemperature = datath[0];
+    let dhumid = datath[1];
+    if (constrain.temperature.lower_bound > dtemperature) {
+      state.temperature = "lower_bound";
+      isAlert = true;
+    } else if (constrain.temperature.upper_bound < dtemperature) {
+      state.temperature = "upper_bound";
+      isAlert = true;
+    }
+
+    if (constrain.humid.lower_bound > dhumid) {
+      state.humid = "lower_bound";
+      isAlert = true;
+    } else if (constrain.humid.upper_bound < dhumid) {
+      state.humid = "upper_bound";
+      isAlert = true;
+    }
+  } else {
+    if (constrain[type].lower_bound > dhumid) {
+      state[type] = "lower_bound";
+      isAlert = true;
+    } else if (constrain[type].upper_bound < dhumid) {
+      state[type] = "upper_bound";
+      isAlert = true;
+    }
   }
+  if (isAlert) sendMessageAlert(messageAlert);
 }
 
 //test sendmessage
 app.get("/sendmessage", (req, res) => {
-  
-  const message = {
-    data: {
-      title: "Cảnh báo",
-      body: "Tình trạng khu vườn không tốt. Hãy xác nhận công tác.",
-      alert: "true",
-      moisture: "",
-      temperature: "",
-      light: "",
-    },
-    token: registrationToken,
-  };
-  sendMessage(message);
-})
+  isAlert = true;
+  sendMessageAlert(messageAlert);
+});
 
 var waitAppRespone;
 
-async function sendMessage(message) {
-  // admin
-  //   .messaging()
-  //   .send(message)
-  //   .then((response) => {
-  //     // Response is a message ID string.
-  //     console.log("Successfully sent message:", response);
-  //   })
-  //   .catch((error) => {
-  //     console.log("Error sending message:", error);
-  //   });
-  isAlert = true;
-  waitAppRespone = setTimeout(function () {
-    console.log("run !");
-    if (isAlert == true && appRespone == "pending") {
-      alertEmitter.emit("runTask", true);
-    }
-    
-  }, 1000 * 10);
+async function sendMessageAlert(messageAlert) {
+  
+  admin
+    .messaging()
+    .send(messageAlert)
+    .then((response) => {
+      // Response is a message ID string.
+      console.log("Successfully sent message:", response);
+    })
+    .catch((error) => {
+      console.log("Error sending message:", error);
+    });
+
+  if (isAlert) {
+    waitAppRespone = setTimeout(function () {
+      console.log("run !");
+      if (isAlert == true && appRespone == "pending") {
+        //alertEmitter.emit("runTask", true);
+        runTask(true);
+      }
+    }, 1000 * 20);
+  }
 }
 
 //sendMessage();
 var appRespone = "pending";
 
 app.post("/alertprocessing", (req, res) => {
-  isAlert = true;
+  //isAlert = true;
   if (isAlert) {
-    appRespone = "responded"
+    appRespone = "responded";
     if (req.body.accept == "true") {
       console.log("alertprocessing: ok");
-      alertEmitter.emit("runTask", true);
+      //alertEmitter.emit("runTask", true);
+      runTask(true);
       res.json({ id: req.body.id, status: "processing" });
     } else {
       isAlert = false;
       console.log("alertprocessing: no");
-      alertEmitter.emit("runTask", false);
+      //alertEmitter.emit("runTask", false);
+      runTask(false);
       res.json({ id: req.body.id, status: "rejected" });
     }
-
   } else {
     res.json({ id: "something wrong", status: "something wrong" });
   }
 });
 
-let runTask = (respone) => {
+function runTask(respone) {
   isAlert = false;
+  clearTimeout(waitAppRespone);
   appRespone = "pending";
+
   if (respone) {
     console.log("runTask");
+    client2.publish(
+      messageDeviceIot.MayBomMini.feed,
+      messageDeviceIot.MayBomMini.activate
+    );
+    setTimeout(() => {
+      client2.publish(
+        messageDeviceIot.MayBomMini.feed,
+        messageDeviceIot.MayBomMini.deactivate
+      );
+      sendMessageAlert(messageTaskCompleted);
+    }, 1000 * 20);
+  } else {
+    console.log("cancel Task");
+    sendMessageAlert(messageTaskCompleted);
   }
-  else{
-    console.log("cancel Task")
-  }
-
-  clearTimeout(waitAppRespone);
-
 }
-alertEmitter.on("runTask", runTask);
 
+//alertEmitter.on("runTask", runTask);
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
