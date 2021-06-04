@@ -16,7 +16,7 @@ const admin = require("firebase-admin");
 const serviceAccount = require("./smarttomatofarm-firebase-adminsdk-j0civ-24e81aa790.json");
 const registrationToken =
   "ceYpnIiuTSy3dR_dzjBQ1R:APA91bHS7ZELu_e8AxiVXAxCMrDsRibAztzb8_G9iT8zFbj-GKgNKbm4GeegSq4oFbIlRbVNL9Jm4FpDmQnnECh_HXBQLRkPp-lw8679elSgRL_pSHz8MpFsoejn9-zpy1ocPkHpsp9F";
-  const messageDeviceIot = require("./message-device-iot.json");
+const messageDeviceIot = require("./message-device-iot.json");
 const alertEvents = require("events");
 const alertEmitter = new alertEvents.EventEmitter();
 
@@ -243,10 +243,13 @@ io.on("connection", (socket) => {
         console.log("Insert success");
       });
     }
-    if (isAlert == false) {
+    if (state.isAlert == false) {
       checkConstrain(table, values.data);
     }
 
+    if(state.isAlert == true){
+      checkData();
+    }
     socket.emit("feedFromServer", {
       topic: topic,
       data: message.toString(),
@@ -291,7 +294,7 @@ io.on("connection", (socket) => {
       console.log("Insert success");
     });
 
-    if (isAlert == false) {
+    if (state.isAlert == false) {
       checkConstrain(table, values.data);
     }
 
@@ -424,7 +427,6 @@ app.get("/api/logout", (req, res) => {
 });
 
 //------------
-var isAlert = false;
 
 var constrain = {
   moisture: {
@@ -436,8 +438,8 @@ var constrain = {
     lower_bound: 28,
   },
   light: {
-    upper_bound: 105,
-    lower_bound: 95,
+    upper_bound: 100,
+    lower_bound: 100,
   },
   humid: {
     upper_bound: 55,
@@ -445,12 +447,40 @@ var constrain = {
   },
 };
 
+const mLowerBound = "lower_bound";
+const mUpperBound = "upper_bound";
+
 var state = {
-  moisture: "lower_bound",
+  isAlert: false,
+  appRespone: "pending",
+  moisture: mLowerBound,
   temperature: "",
   light: "",
   humid: "",
 };
+
+
+
+function checkStatetoCompleteTask(data){
+
+  for(const i in state){
+    if(i != "isAlert" && i != "appRespone"){
+      if(state[i] == mLowerBound){
+        if(data )
+      }
+    } 
+  }
+}
+
+function resetState() {
+  state.isAlert = false;
+  state.appRespone = "";
+  state.moisture = "";
+  state.temperature = "";
+  state.light = "";
+  state.humid = "";
+}
+
 
 var messageAlert = {
   data: {
@@ -496,48 +526,68 @@ async function loadConstrain() {
 
 //loadConstrain();
 
-async function checkConstrain(type, data) {
+function checkConstrain(type, data) {
   if (type == "temperature") {
     let datath = data.split("-");
     let dtemperature = datath[0];
     let dhumid = datath[1];
     if (constrain.temperature.lower_bound > dtemperature) {
-      state.temperature = "lower_bound";
-      isAlert = true;
+      state.temperature = mLowerBound;
+      state.isAlert = true;
     } else if (constrain.temperature.upper_bound < dtemperature) {
-      state.temperature = "upper_bound";
-      isAlert = true;
+      state.temperature = mUpperBound;
+      state.isAlert = true;
     }
 
     if (constrain.humid.lower_bound > dhumid) {
-      state.humid = "lower_bound";
-      isAlert = true;
+      state.humid = mLowerBound;
+      state.isAlert = true;
     } else if (constrain.humid.upper_bound < dhumid) {
-      state.humid = "upper_bound";
-      isAlert = true;
+      state.humid = mUpperBound;
+      state.isAlert = true;
     }
   } else {
-    if (constrain[type].lower_bound > dhumid) {
-      state[type] = "lower_bound";
-      isAlert = true;
-    } else if (constrain[type].upper_bound < dhumid) {
-      state[type] = "upper_bound";
-      isAlert = true;
+    if (constrain[type].lower_bound > data) {
+      state[type] = mLowerBound;
+      state.isAlert = true;
+    } else if (constrain[type].upper_bound < data) {
+      state[type] = mUpperBound;
+      state.isAlert = true;
     }
   }
-  if (isAlert) sendMessageAlert(messageAlert);
+  if(state.moisture == mUpperBound || state.temperature != "" || state.humid == mLowerBound){
+    let messagecannotHandle = {
+      data: {
+        title: "Cảnh báo",
+        body: "Tình trạng khu vườn không tốt. Nhưng hiện tại chúng tôi không thể cải thiện. Hãy kiểm tra khu vườn ngay.",
+        alert: "cannotHanlde",
+        id: "dadn",
+        moisture: state.moisture,
+        temperature: state.temperature,
+        light: state.light,
+        humid: state.humid,
+      },
+      token: registrationToken,
+    };
+    sendMessageAlert(messagecannotHandle);
+  }
+  else if (state.isAlert) sendMessageAlert(messageAlert);
 }
 
 //test sendmessage
 app.get("/sendmessage", (req, res) => {
-  isAlert = true;
+  state.isAlert = true;
   sendMessageAlert(messageAlert);
 });
 
 var waitAppRespone;
 
 async function sendMessageAlert(messageAlert) {
-  
+  client.publish(
+    messageDeviceIot.LoaBuzzer.feed,
+    messageDeviceIot.LoaBuzzer.activate
+  );
+  state.appRespone = "pending";
   admin
     .messaging()
     .send(messageAlert)
@@ -549,10 +599,10 @@ async function sendMessageAlert(messageAlert) {
       console.log("Error sending message:", error);
     });
 
-  if (isAlert) {
+  if (state.isAlert) {
     waitAppRespone = setTimeout(function () {
       console.log("run !");
-      if (isAlert == true && appRespone == "pending") {
+      if (state.isAlert == true && state.appRespone == "pending") {
         //alertEmitter.emit("runTask", true);
         runTask(true);
       }
@@ -561,19 +611,18 @@ async function sendMessageAlert(messageAlert) {
 }
 
 //sendMessage();
-var appRespone = "pending";
 
 app.post("/alertprocessing", (req, res) => {
   //isAlert = true;
-  if (isAlert) {
-    appRespone = "responded";
+  if (state.isAlert) {
+    state.appRespone = "responded";
     if (req.body.accept == "true") {
       console.log("alertprocessing: ok");
       //alertEmitter.emit("runTask", true);
       runTask(true);
       res.json({ id: req.body.id, status: "processing" });
     } else {
-      isAlert = false;
+      state.isAlert = false;
       console.log("alertprocessing: no");
       //alertEmitter.emit("runTask", false);
       runTask(false);
@@ -585,27 +634,74 @@ app.post("/alertprocessing", (req, res) => {
 });
 
 function runTask(respone) {
-  isAlert = false;
+  state.isAlert = false;
   clearTimeout(waitAppRespone);
-  appRespone = "pending";
+  state.appRespone = "";
 
   if (respone) {
     console.log("runTask");
-    client2.publish(
-      messageDeviceIot.MayBomMini.feed,
-      messageDeviceIot.MayBomMini.activate
-    );
-    setTimeout(() => {
-      client2.publish(
-        messageDeviceIot.MayBomMini.feed,
-        messageDeviceIot.MayBomMini.deactivate
-      );
-      sendMessageAlert(messageTaskCompleted);
-    }, 1000 * 20);
+    sendtask();
+    // client2.publish(
+    //   messageDeviceIot.MayBomMini.feed,
+    //   messageDeviceIot.MayBomMini.activate
+    // );
+    // setTimeout(() => {
+    //   client2.publish(
+    //     messageDeviceIot.MayBomMini.feed,
+    //     messageDeviceIot.MayBomMini.deactivate
+    //   );
+    //   sendMessageAlert(messageTaskCompleted);
+    // }, 1000 * 20);
   } else {
     console.log("cancel Task");
     sendMessageAlert(messageTaskCompleted);
   }
+}
+
+
+
+function sendtask(task) {
+  client.publish(
+    messageDeviceIot.LoaBuzzer.feed,
+    messageDeviceIot.LoaBuzzer.deactive
+  );
+  if (state.moisture == mLowerBound) {
+    client2.publish(
+      messageDeviceIot.MayBomMini.feed,
+      messageDeviceIot.MayBomMini.activate
+    );
+  }
+  if (state.humid == mUpperBound) {
+    client.publish(
+      messageDeviceIot.CanhQuat.feed,
+      messageDeviceIot.CanhQuat.activate
+    );
+  }
+  if (state.light == mUpperBound) {
+    client2.publish(
+      messageDeviceIot.MaiChe.feed,
+      messageDeviceIot.MaiChe.activate
+    );
+  }
+  if (state.light == mLowerBound){
+    client2.publish(messageDeviceIot.MaiChe.feed, messageDeviceIot.MaiChe.deactive);
+  }
+}
+
+function completetask(){
+  if (state.moisture == mLowerBound) {
+    client2.publish(
+      messageDeviceIot.MayBomMini.feed,
+      messageDeviceIot.MayBomMini.deactivate
+    );
+  }
+  if (state.humid == mUpperBound) {
+    client.publish(
+      messageDeviceIot.CanhQuat.feed,
+      messageDeviceIot.CanhQuat.deactive
+    );
+  }
+  resetState();
 }
 
 //alertEmitter.on("runTask", runTask);
