@@ -184,20 +184,22 @@ app.get("/constrain", (req, res) => {
 });
 
 app.post("/setConstrain", (req, res) => {
+
+    console.log()
     const values = {
         type: req.body.type,
-        upper_bound: req.body.upper_bound,
-        lower_bound: req.body.lower_bound,
+        upper_bound: parseInt(req.body.upper_bound),
+        lower_bound: parseInt(req.body.lower_bound),
     };
-
-    const sqlUpdate = `UPDATE constrain SET lower-bound = ${values.lower_bound}, upper-bound  = ${values.upper_bound} WHERE type = '${values.type}'`;
-    console.log(sqlUpdate);
-    // database.query(
-    //     sqlInsert,(err, result) => {
-    //     if (err) console.log(err);
-    //     else console.log("success");
-    //     }
-    // );
+    const sqlUpdate = `UPDATE DADN.constrain SET lower_bound = ${values.lower_bound}, upper_bound  = ${values.upper_bound} WHERE type = '${values.type}'`;
+    console.log(sqlUpdate)
+    database.query(
+        sqlUpdate,(err, result) => {
+        if (err) console.log(err);
+        else console.log("success");
+        
+        }
+    );
 });
 
 app.get("/currentFigure", async (req, res) => {
@@ -433,7 +435,7 @@ io.on("connection", (socket) => {
         try {
             const data = JSON.parse(patternData);
             console.log(JSON.parse(patternData));
-            if (data.message.name === "RELAY" || data.message.name  == "SOUND") {
+            if (data.message.name === "RELAY" || data.message.name  == "LIGHT") {
                 client2.publish(data.topic, JSON.stringify(data.message));
                 console.log("Publish success")
             } else {

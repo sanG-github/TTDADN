@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "antd/dist/antd.css";
 import "../styles/ControlPanel.css";
 import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faEdit} from "@fortawesome/free-solid-svg-icons";
 import { Card } from "antd";
 import { Switch } from "antd";
 import { io } from "socket.io-client";
@@ -9,8 +11,18 @@ import { Select } from "antd";
 import { Slider } from "antd";
 import { Input } from "antd";
 import { Button } from "antd";
+import { Table} from 'antd';
+import TextField from '@material-ui/core/TextField';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+// import Record from "./Record";
+const { Column } = Table;
 const { Option } = Select;
 const { Search } = Input;
+
 require("dotenv").config();
 
 const socket = io("http://localhost:3001", {
@@ -106,9 +118,11 @@ function LCD({ datum }) {
     const [state, setState] = useState("");
 
     function onSearch(value) {
-        if (value.length < 12) {
-            publishData(datum, value);
-        }
+        // if (value.length < 12) {
+        //     publishData(datum, value);
+        // }
+
+        publishData(datum, value);
     }
 
     function onChange(e) {
@@ -236,12 +250,73 @@ function Engine({ datum }) {
 
 function ControlPanel() {
     const [data, setData] = useState([]);
+    const [constrains, setConstrains] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [item, setItem] = useState({});
+   
+    //Các function để UPDATE ràn buộc mới xuống database
+    const handleClickOpen = (record) => {
+        console.log("open")
+        setItem(record)
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        console.log("close")
+        setOpen(false);
+    };
+
+    const handleSubmit = () => {
+        console.log(item)
+        axios.post("http://localhost:3001/setConstrain", item)
+        .then((res) => {
+            if (res.status === 200) {
+                console.log("success");
+            }
+        })
+        .catch((err) => {
+            console.log("fail");
+        });
+        setTimeout ( handleClose,1000);
+        
+        
+    };
+
+    const handleChangeUpper = (e)=>{
+        setItem(
+            {
+                id : item.id,
+                type : item.type,
+                upper_bound : parseInt(e.target.value),
+                lower_bound : parseInt(item.lower_bound)
+            }
+        )
+    }
+
+    const handleChangeLower = (e)=>{
+        setItem(
+            {
+                id : item.id,
+                type : item.type,
+                upper_bound : parseInt(item.upper_bound),
+                lower_bound : parseInt(e.target.value)
+            }
+        )
+
+    }
 
     useEffect(() => {
         axios.get(`http://localhost:3001/device`).then((response) => {
             setData(response.data);
         });
-    }, []);
+
+        axios.get(`http://localhost:3001/constrain`).then((response) => {
+            setConstrains(response.data);
+        });
+
+    }, [open]);
+
+    
 
     // const changeFeedData = (checked) => {
 
@@ -290,9 +365,69 @@ function ControlPanel() {
                         })}
             </div>
 
+            {
+                //Table hiển thị các ràn buộc
+            }
             <div className="title">Thông số ràng buộc</div>
+            <div>
+                <Table dataSource={constrains}>
+                    <Column title="ID" dataIndex="id" key="id" />
+                    <Column title="Thông số ràng buộc" dataIndex="type" key="type" />
+                    <Column title="Chặn dưới" dataIndex="lower_bound" key="lower_bound" />
+                    <Column title="Chặn trên" dataIndex="upper_bound" key="upper_bound" />
+                    <Column title="Chỉnh sửa" render={(text, record) => {
+                        
+                        return (
+                            <Button variant="outlined" color="primary" onClick={()=>handleClickOpen(record)}>
+                                <FontAwesomeIcon icon={faEdit}/>
+                            </Button>
+                        )
+                    }}/>
+                </Table>
+            </div>
+
+            {// Dialog để edit ràng buộc
+            }
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Thay đổi ràng buộc</DialogTitle>
+                <DialogContent>
+                <DialogContentText>
+                    Nhập thông số ràn buộc mới cho {item.type}
+                </DialogContentText>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="name"
+                    label="Chặn trên mới"
+                    type="text"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChangeUpper(e)}
+                    defaultValue={item.upper_bound}
+                />
+                <TextField
+                    margin="dense"
+                    id="name"
+                    label="Chặn dưới mới"
+                    type="text"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChangeLower(e)}
+                    defaultValue={item.lower_bound}
+                />
+                </DialogContent>
+                <DialogActions>
+                <Button onClick={handleClose} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={handleSubmit} color="primary">
+                    Thay đổi
+                </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }
+
 
 export default ControlPanel;

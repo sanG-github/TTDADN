@@ -8,7 +8,10 @@
 }
 
 .Garden {
-    width: 270px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    width: 310px;
+    padding: 20px 20px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(2,120px);
