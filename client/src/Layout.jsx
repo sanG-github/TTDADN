@@ -9,7 +9,7 @@ import {
     faSignOutAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { Layout, Menu } from "antd";
-import { UserOutlined } from "@ant-design/icons";
+import { UserOutlined, ControlOutlined } from "@ant-design/icons";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import ControlPanel from "./pages/ControlPanel";
 import CurrentFigure from "./pages/CurrentFigure";
@@ -58,6 +58,20 @@ const SiderDemo = () => {
                             defaultSelectedKeys={["1"]}
                             mode="inline"
                         >
+                            <SubMenu
+                                key="sub1"
+                                icon={<UserOutlined />}
+                                title="Quản lý tài khoản"
+                            >
+                                <Menu.Item key="3">Feature 1a</Menu.Item>
+                                <Menu.Item key="4">Feature 1b</Menu.Item>
+                                <Menu.Item
+                                    key="5"
+                                    icon={<FontAwesomeIcon icon={faSignOutAlt} />}
+                                >
+                                    <Link to="/logout">Đăng xuất</Link>
+                                </Menu.Item>
+                            </SubMenu>
                             <Menu.Item
                                 key="1"
                                 icon={<FontAwesomeIcon icon={faSeedling} />}
@@ -70,15 +84,6 @@ const SiderDemo = () => {
                             >
                                 <Link to="/statistic">Thống kê</Link>
                             </Menu.Item>
-                            <SubMenu
-                                key="sub1"
-                                icon={<UserOutlined />}
-                                title="Feature 1"
-                            >
-                                <Menu.Item key="3">Feature 1a</Menu.Item>
-                                <Menu.Item key="4">Feature 1b</Menu.Item>
-                                <Menu.Item key="5">Feature 1c</Menu.Item>
-                            </SubMenu>
                             <Menu.Item
                                 key="11"
                                 icon={<FontAwesomeIcon icon={faDatabase} />}
@@ -95,18 +100,13 @@ const SiderDemo = () => {
                             </Menu.Item>
                             <Menu.Item
                                 key="12"
-                                icon={<FontAwesomeIcon icon={faCogs} />}
+                                icon={<ControlOutlined/>}
                             >
                                 <Link to="/garden-control">
                                     Điều khiểm vườn
                                 </Link>
                             </Menu.Item>
-                            <Menu.Item
-                                key="13"
-                                icon={<FontAwesomeIcon icon={faSignOutAlt} />}
-                            >
-                                <Link to="/logout">Đăng xuất</Link>
-                            </Menu.Item>
+                            
                         </Menu>
                     </Sider>
                     <Layout className="site-layout">

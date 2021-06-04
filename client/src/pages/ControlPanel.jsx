@@ -52,7 +52,7 @@ function Led({datum}){
     }
 
     return (
-        <Card title={datum.name} style={{ width: 300, margin: "10px 10px" }}>
+        <Card title={datum.name} style={{ width: 300, margin: "10px 10px" ,borderRadius: "20px"}}>
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
             <span>Chọn :</span>
@@ -84,7 +84,7 @@ function Speaker({ datum }) {
         <Card
             title={datum.name}
             extra=""
-            style={{ width: 300, margin: "10px 10px" }}
+            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
         >
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
@@ -130,7 +130,7 @@ function LCD({ datum }) {
                     }}
                 />
             }
-            style={{ width: 300, margin: "10px 10px" }}
+            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
         >
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
@@ -163,7 +163,7 @@ function WaterPump({ datum }) {
                     }}
                 />
             }
-            style={{ width: 300, margin: "10px 10px" }}
+            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
         >
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
@@ -199,7 +199,7 @@ function Engine({ datum }) {
                     }}
                 />
             }
-            style={{ width: 300, margin: "10px 10px" }}
+            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
         >
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
@@ -289,6 +289,8 @@ function ControlPanel() {
                             }
                         })}
             </div>
+
+            <div className="title">Thông số ràng buộc</div>
         </div>
     );
 }

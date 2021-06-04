@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { notification } from "antd";
 import { SmileOutlined } from "@ant-design/icons";
 import Axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faLeaf} from "@fortawesome/free-solid-svg-icons";
 
 Axios.defaults.withCredentials = true;
 
@@ -80,6 +82,7 @@ const Account = (props) => {
     const SignUpForm = () => {
         return (
             <form>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
                 <h2>Sign Up!</h2>
                 <fieldset>
                     <legend>Create Account</legend>
@@ -109,6 +112,7 @@ const Account = (props) => {
     const LogInForm = () => {
         return (
             <form>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
                 <h2>Welcome Back!</h2>
                 <fieldset>
                     <legend>Log In</legend>
@@ -143,6 +147,7 @@ const Account = (props) => {
     const PWResetForm = () => {
         return (
             <form>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
                 <h2>Reset Password</h2>
                 <fieldset>
                     <legend>Password Reset</legend>

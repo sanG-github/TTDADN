@@ -141,7 +141,10 @@ function CurrentFigure() {
                                 : { color: "#ff3333" }
                         }
                     >
-                        {moisture.data} {moisture.unit}
+                        {moisture.data} 
+                        
+                        {moisture.unit === "%" ? moisture.unit : "%"}
+                        
                     </p>
                 </div>
                 <div className="Figure">

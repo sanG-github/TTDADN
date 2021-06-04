@@ -10,6 +10,7 @@ const socket = require("socket.io");
 const { getDate } = require("date-fns");
 const mysql = require("mysql");
 const bcrypt = require("bcrypt");
+const { response } = require("express");
 
 require("dotenv").config();
 
@@ -44,13 +45,12 @@ app.use(
 const database = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "sanglaso1",
+    password: "quan0402",
     database: "DADN",
 });
 
 app.get("/statistic/temperature", (req, res) => {
     var sqlSelect = "";
-    console.log(req.query);
     if (req.query) {
         var from = req.query.from.split(" ");
         var to = req.query.to.split(" ");
@@ -72,7 +72,6 @@ app.get("/statistic/temperature", (req, res) => {
 
 app.get("/statistic/moisture", (req, res) => {
     var sqlSelect = "";
-    console.log(req.query);
     if (req.query) {
         var from = req.query.from.split(" ");
         var to = req.query.to.split(" ");
@@ -95,7 +94,7 @@ app.get("/statistic/moisture", (req, res) => {
 
 app.get("/statistic/humidity", (req, res) => {
     var sqlSelect = "";
-    console.log(req.query);
+    
     if (req.query) {
         var from = req.query.from.split(" ");
         var to = req.query.to.split(" ");
@@ -108,12 +107,12 @@ app.get("/statistic/humidity", (req, res) => {
             "SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity GROUP BY day(datetime) ORDER BY day(datetime)";
     }
 
-    // database.query(sqlSelect, (err, result) => {
-    //     if (err) {
-    //         console.log(err);
-    //     }
-    //     res.send(result);
-    // });
+    database.query(sqlSelect, (err, result) => {
+        if (err) {
+            console.log(err);
+        }
+        res.send(result);
+    });
 });
 
 app.get("/device", (req, res) => {
@@ -253,8 +252,8 @@ async function updateClient() {
             password: res.data.keyBBC1,
         };
 
-        // console.log(options);
-        // console.log(options2);
+        console.log(options);
+        console.log(options2);
 
         client = await mqtt.connect("mqtt://" + options.host, options);
 
@@ -310,9 +309,6 @@ async function updateClient() {
                 break;
             case "TEMP-HUMID":
                 table = "temperature";
-                break;
-            case "LIGHT":
-                table = "light";
                 break;
             default:
                 break;
@@ -394,6 +390,9 @@ async function updateClient() {
             case "TEMP-HUMID":
                 table = "temperature";
                 break;
+            case "LIGHT":
+                table = "light";
+                break;
             default:
                 break;
         }
@@ -434,10 +433,12 @@ io.on("connection", (socket) => {
         try {
             const data = JSON.parse(patternData);
             console.log(JSON.parse(patternData));
-            if (data.message.name === "RELAY") {
+            if (data.message.name === "RELAY" || data.message.name  == "SOUND") {
                 client2.publish(data.topic, JSON.stringify(data.message));
+                console.log("Publish success")
             } else {
                 client.publish(data.topic, JSON.stringify(data.message));
+                console.log("Publish success")
             }
         } catch (err) {
             console.log(err);
