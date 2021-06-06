@@ -177,13 +177,15 @@ function Statistic() {
                     </div>
                 </div>
 
-                <div className="Datepicker">
-                    <DateRange
-                        onChange={item => handleSelectDate(item)}
-                        months={1}
-                        ranges={state}
-                        direction="horizontal"
-                    />;
+                <div className="">
+                    <div className="Datepicker">
+                        <DateRange
+                            onChange={item => handleSelectDate(item)}
+                            months={1}
+                            ranges={state}
+                            direction="horizontal"
+                        />
+                    </div>
                 </div>
             </div>
 

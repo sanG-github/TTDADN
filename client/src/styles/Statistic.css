@@ -22,3 +22,7 @@
     justify-content: space-around;
 }
 
+.Datepicker {
+    position: fixed;
+    right: 5%;
+}

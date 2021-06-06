@@ -5,6 +5,11 @@ import { SmileOutlined } from "@ant-design/icons";
 import Axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {faLeaf} from "@fortawesome/free-solid-svg-icons";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    updateUsername
+}
+from "../redux/action.js"
 
 Axios.defaults.withCredentials = true;
 
@@ -23,6 +28,8 @@ const openNotification = (message, description, isOk) => {
 
 const Account = (props) => {
     const [currentView, setCurentView] = useState("logIn");
+
+    const dispatch = useDispatch();
 
     const handleSignUp = (e) => {
         e.preventDefault();
@@ -74,7 +81,9 @@ const Account = (props) => {
                     `Welcome back ${response.data[0].username}`,
                     true
                 );
+                dispatch(updateUsername(username))
                 props.setLoggedIn(true);
+                
             }
         });
     };

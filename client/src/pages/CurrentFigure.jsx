@@ -8,6 +8,7 @@ import temperatureImg from "../img/temperature.png";
 import moistureImg from "../img/moisture.png";
 import humidityImg from "../img/humidity.png";
 
+
 const io = require("socket.io-client");
 
 require("dotenv").config();
@@ -46,15 +47,8 @@ function CurrentFigure() {
                 console.log("feedFromServer2", res);
 
                 switch (res.name) {
-                    case "TEMP-HUMID":
-                        setTemp(JSON.parse(data.data).data.split("-")[0]);
-                        setHumidity(JSON.parse(data.data).data.split("-")[1]);
-                        break;
                     case "LIGHT":
                         setLight(JSON.parse(data.data));
-                        break;
-                    case "SOIL":
-                        setMoisture(JSON.parse(data.data));
                         break;
                     default:
                         break;
@@ -73,9 +67,6 @@ function CurrentFigure() {
                     case "TEMP-HUMID":
                         setTemp(JSON.parse(data.data).data.split("-")[0]);
                         setHumidity(JSON.parse(data.data).data.split("-")[1]);
-                        break;
-                    case "LIGHT":
-                        setLight(JSON.parse(data.data));
                         break;
                     case "SOIL":
                         setMoisture(JSON.parse(data.data));

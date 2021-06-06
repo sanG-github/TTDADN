@@ -18,7 +18,9 @@ import Record from "./pages/Record";
 import Logout from "./pages/Logout";
 import Account from "./pages/Account";
 import GardenControl from "./pages/GardenControl";
+
 import axios from "axios";
+import UserInfo from "./pages/UserInfo";
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -64,7 +66,11 @@ const SiderDemo = () => {
                                 title="Quản lý tài khoản"
                             >
                                 <Menu.Item key="3">Feature 1a</Menu.Item>
-                                <Menu.Item key="4">Feature 1b</Menu.Item>
+                                <Menu.Item
+                                    key="4"
+                                >
+                                    <Link to="/user">Thông tin người dùng</Link>
+                                </Menu.Item>
                                 <Menu.Item
                                     key="5"
                                     icon={<FontAwesomeIcon icon={faSignOutAlt} />}
@@ -143,6 +149,9 @@ const SiderDemo = () => {
                                         </Route>
                                         <Route exact path="/logout">
                                             <Logout />
+                                        </Route>
+                                        <Route exact path="/user">
+                                            <UserInfo />
                                         </Route>
                                     </Suspense>
                                 </Switch>

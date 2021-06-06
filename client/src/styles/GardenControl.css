@@ -25,10 +25,15 @@
     ;
 }
 
-.Block {
+.Block:hover {
     background-color: rgb(0, 101, 238);
-    border-radius: 12px;
     color: white;
+}
+
+.Block {
+    background-color: white;
+    border-radius: 12px;
+    color: black;
     text-align: center;
     font-size: 20px;
     font-weight: bold;
@@ -63,4 +68,23 @@
 
 .Rotate {
     transform: rotate(-90deg);
+}
+
+button {
+    background-color: transparent;
+    border: none;
+    padding: 0 0;
+    margin: 0 0;
+}
+
+.Control {
+
+}
+
+.Module {
+    margin: 20px auto;
+    width: 90%;
+    padding: 20px 20px;
+    background-color: white;
+    border-radius: 20px;
 }
