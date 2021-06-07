@@ -150,75 +150,85 @@ var client, client2;
 // MQTT
 // Update Key
 async function updateClient() {
-  await axios.get("http://dadn.esp32thanhdanh.link/").then((res) => {
-    const options = {
-      port: process.env.PORT,
-      host: process.env.HOST,
-      username: process.env.USERX,
-      password: res.data.keyBBC,
-    };
-
-    const options2 = {
-      port: process.env.PORT,
-      host: process.env.HOST,
-      username: process.env.USERX_02,
-      password: res.data.keyBBC1,
-    };
-
-    client = mqtt.connect("mqtt://" + options.host, options);
-
-    client2 = mqtt.connect("mqtt://" + options2.host, options2);
-
-    client.on("connect", function () {
-      console.log("mqtt: server CSE_BBC connected!");
-    });
-
-    client2.on("connect", function () {
-      console.log("mqtt: server CSE_BBC1 connected!");
-    });
+  const options = {
+    port: process.env.PORT,
+    host: process.env.HOST,
+    username: process.env.USERX_LDQ,
+    password: process.env.KEY_LDQ,
+  };
+  client = mqtt.connect("mqtt://" + options.host, options);
+  client.on("connect", function () {
+    console.log("mqtt: server CSE_BBC connected!");
   });
+  client2 = mqtt.connect("mqtt://" + options.host, options);
+  client2.on("connect", function () {
+    console.log("mqtt: server CSE_BBC connected!");
+  });
+
+  // await axios.get("http://dadn.esp32thanhdanh.link/").then((res) => {
+  //   const options = {
+  //     port: process.env.PORT,
+  //     host: process.env.HOST,
+  //     username: process.env.USERX,
+  //     password: res.data.keyBBC,
+  //   };
+
+  //   const options2 = {
+  //     port: process.env.PORT,
+  //     host: process.env.HOST,
+  //     username: process.env.USERX_02,
+  //     password: res.data.keyBBC1,
+  //   };
+
+  //   client = mqtt.connect("mqtt://" + options.host, options);
+
+  //   client2 = mqtt.connect("mqtt://" + options2.host, options2);
+
+  //   client.on("connect", function () {
+  //     console.log("mqtt: server CSE_BBC connected!");
+  //   });
+
+  //   client2.on("connect", function () {
+  //     console.log("mqtt: server CSE_BBC1 connected!");
+  //   });
+  // });
 }
 
 updateClient();
 
-axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
+axios.get(`https://io.adafruit.com/api/v2/quanledinh/feeds`).then((res) => {
   const feeds = res.data;
   console.log(`----------------------\nAll feeds from ${process.env.USERX}:`);
   feeds.map((feed) => {
     console.log("\t", feed.name);
-    client.subscribe(process.env.USERX + "/feeds/" + feed.name);
+    client.subscribe(process.env.USERX_LDQ + "/feeds/" + feed.name);
+    client2.subscribe(process.env.USERX_LDQ + "/feeds/" + feed.name);
   });
   alertEmitter.emit("clientready");
 });
 
-axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
-  const feeds = res.data;
-  console.log(
-    `----------------------\nAll feeds from ${process.env.USERX_02}:`
-  );
-  feeds.map((feed) => {
-    console.log("\t", feed.name);
-    client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
-  });
-  alertEmitter.emit("client2ready");
-});
+// axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
+//   const feeds = res.data;
+//   console.log(
+//     `----------------------\nAll feeds from ${process.env.USERX_02}:`
+//   );
+//   feeds.map((feed) => {
+//     console.log("\t", feed.name);
+//     client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
+//   });
+//   alertEmitter.emit("client2ready");
+// });
 
 alertEmitter.on("clientready", () => {
   client.on("message", function (topic, message) {
-    console.log("--------");
-    console.log(state);
-    console.log("--------");
-    // in ra màn hình console 1 message ở định dạng string
+    const values = JSON.parse(message);
+    let table = "";
     console.log(
       "----------------------\nTopic: ",
       topic,
       "\nMessage: ",
       message.toString()
     );
-    console.log(JSON.parse(message));
-    const values = JSON.parse(message);
-    let table = "";
-
     switch (values.name) {
       case "SOIL":
         table = "moisture";
@@ -226,10 +236,21 @@ alertEmitter.on("clientready", () => {
       case "TEMP-HUMID":
         table = "temperature";
         break;
+      case "LIGHT":
+        table = "light";
+        break;
       default:
         break;
     }
     if (table != "") {
+      console.log(
+        "----------------------\nTopic: ",
+        topic,
+        "\nMessage: ",
+        message.toString()
+      );
+      console.log("--------State");
+      console.log(state);
       if (state.alertState == "empty") {
         checkConstrain(table, values.data);
       }
@@ -242,17 +263,6 @@ alertEmitter.on("clientready", () => {
 
 alertEmitter.on("client2ready", () => {
   client2.on("message", function (topic, message) {
-    console.log("--------");
-    console.log(state);
-    console.log("--------");
-    // in ra màn hình console 1 message ở định dạng string
-    console.log(
-      "----------------------\nTopic: ",
-      topic,
-      "\nMessage: ",
-      message.toString()
-    );
-    console.log(JSON.parse(message));
     const values = JSON.parse(message);
     let table = "";
     switch (values.name) {
@@ -263,6 +273,14 @@ alertEmitter.on("client2ready", () => {
         break;
     }
     if (table != "") {
+      console.log(
+        "----------------------\nTopic: ",
+        topic,
+        "\nMessage: ",
+        message.toString()
+      );
+      console.log("--------State");
+      console.log(state);
       if (state.alertState == "empty") {
         checkConstrain(table, values.data);
       }
@@ -537,31 +555,45 @@ async function loadConstrain() {
 
 function checkToCompleteTask(type, data) {
   console.log("======= \n checkToCompleteTask");
-  console.log("=======");
-  console.log("state["+type+"]")
-  if (state[type] != "") {
-    if (type == "temperature") {
-      let datath = data.split("-");
-      let dtemperature = parseInt(datath[0]);
-      let dhumid = parseInt(datath[1]);
+  console.log("state[" + type + "]");
+  if (type == "temperature") {
+    let datath = data.split("-");
+    let dtemperature = parseInt(datath[0]);
+    let dhumid = parseInt(datath[1]);
+    if (state.temperature != "") {
+      if (
+        dtemperature <= constrain.temperature.upper_bound &&
+        dtemperature >= constrain.temperature.lower_bound
+      )
+      completetask();
+      return;
+    }
+    if (state.humid != "") {
       if (
         dhumid <= constrain.humid.upper_bound &&
         dhumid >= constrain.humid.lower_bound
-      ) {
+      ){
         completetask();
+        console.log("check complete ok")
       }
+      
       return;
     }
-    let dataint = parseInt(data);
-    if (
-      dataint <= constrain[type].upper_bound &&
-      dataint >= constrain[type].lower_bound
-    )
+  }
+  else{
+    if (state[type] != "") {
+      let dataint = parseInt(data);
+      if (
+        dataint <= constrain[type].upper_bound &&
+        dataint >= constrain[type].lower_bound
+      )
       completetask();
+    }
   }
 }
 
 function checkConstrain(type, data) {
+  console.log("---- checkconstrain");
   let flag = false;
   if (type == "temperature") {
     let datath = data.split("-");
@@ -592,13 +624,16 @@ function checkConstrain(type, data) {
       flag = true;
     }
   }
+  console.log(state);
   if (
     state.moisture == mUpperBound ||
     state.temperature != "" ||
     state.humid == mLowerBound
   ) {
+    console.log("---\ncheck cannotHanlde");
     alertEmitter.emit("cannotHandle");
   } else if (flag) {
+    console.log("---\ncheck handle");
     console.log(state);
     alertEmitter.emit("handle");
   }
@@ -613,17 +648,17 @@ app.get("/api/sendmessage", (req, res) => {
 /////--------------------------
 
 async function sendFCM(message) {
-  // admin
-  //   .messaging()
-  //   .send(message)
-  //   .then((response) => {
-  //     // Response is a message ID string.
-  //     console.log("Successfully sent message:", response);
-  //   })
-  //   .catch((error) => {
-  //     console.log("Error sending message:", error);
-  //   });
-  console.log("sendfcm");
+  admin
+    .messaging()
+    .send(message)
+    .then((response) => {
+      // Response is a message ID string.
+      console.log("Successfully sent message:", response);
+    })
+    .catch((error) => {
+      console.log("Error sending message:", error);
+    });
+  console.log("-----------\nsendfcm");
 }
 
 var state = {
@@ -637,7 +672,7 @@ var state = {
 var alertTimeOut;
 
 alertEmitter.on("cannotHandle", () => {
-  console.log("cannotHandle");
+  console.log("-------cannotHandle");
   client.publish(
     messageDeviceIot.LoaBuzzer.feed,
     messageDeviceIot.LoaBuzzer.activate
@@ -647,7 +682,8 @@ alertEmitter.on("cannotHandle", () => {
     data: {
       title: "Tình trạng khu vườn không tốt",
       body: "Hiện tại chúng tôi không thể cải thiện.",
-      detail: "Hiện tại, chúng tôi không thể cải thiện tình trạng của khu vườn. Hãy kiểm tra khu vườn ngay.",
+      detail:
+        "Hiện tại, chúng tôi không thể cải thiện tình trạng của khu vườn. Hãy kiểm tra khu vườn ngay.",
       alert: "cannotHandle",
       id: "dadn",
       moisture: state.moisture,
@@ -670,7 +706,8 @@ alertEmitter.on("handle", () => {
     data: {
       title: "Tình trạng khu vườn không tốt",
       body: "Hãy xác nhận công tác điều chỉnh.",
-      detail: "Chúng tôi sẽ thực hiện công tác điều chỉnh nếu bạn không xác nhận trong 5 phút.",
+      detail:
+        "Chúng tôi sẽ thực hiện công tác điều chỉnh nếu bạn không xác nhận trong 5 phút.",
       alert: "alert",
       id: "dadn",
       moisture: state.moisture,
@@ -693,29 +730,36 @@ alertEmitter.on("handle", () => {
   }, 1000 * 10);
 });
 
-app.post("/api/reciveresponefromapp", (req, res) => {
+app.post("/api/receiveresponefromapp", (req, res) => {
   client.publish(
     messageDeviceIot.LoaBuzzer.feed,
     messageDeviceIot.LoaBuzzer.deactive
   );
-  console.log(req.body.action);
-  if (req.body.action == "acceptTask") {
-    console.log("acceptTask");
-    res.json({id: req.body.id, status: "processing"})
-    //runTask();
-    return;
+  console.log("-----receiveresponefromapp");
+  console.log("body.action: " + req.body.action);
+  if(state.alertState=="pending"){
+    if (req.body.action == "acceptTask") {
+      console.log("acceptTask");
+      res.json({ id: req.body.id, status: "processing" });
+      runTask();
+      return;
+    }
+    if (req.body.action == "cancelTask") {
+      res.json({ id: req.body.id, status: "rejected" });
+      console.log("rejected");
+      cancelTask();
+      return;
+    }
+    if (req.body.action == "cannotHandle") {
+      res.json({ id: req.body.id, status: "rejected" });
+      cannotHandle();
+      return;
+    }
   }
-  if (req.body.action == "cancelTask") {
-    res.json({id: req.body.id, status: "rejected"})
-    console.log("rejected");
-    //cancelTask();
-    return;
+  else{
+    res.json({id: "", status: ""})
   }
-  if (req.body.action == "cannotHandle") {
-    res.json({id: req.body.id, status: "rejected"})
-    //cannotHandle();
-    return;
-  }
+  
 });
 
 function runTask() {
@@ -725,6 +769,14 @@ function runTask() {
   console.log("runTask");
   console.log(state);
   console.log("=======");
+  let m = {
+    data: {
+      alert: "processing",
+      id: "dadn",
+    },
+    token: registrationToken,
+  };
+  sendFCM(m);
   if (state.moisture == mLowerBound) {
     client2.publish(
       messageDeviceIot.MayBomMini.feed,
@@ -782,31 +834,31 @@ async function resetState() {
   state.humid = "";
 }
 
-function cancelTask() {
+async function cancelTask() {
   let m = {
     data: {
       alert: "taskCanceled",
     },
     token: registrationToken,
   };
-  sendFCM(m);
+  //sendFCM(m);
   state.alertState = "cancel";
   setTimeout(() => {
-    state.alertState = "empty";
-  }, 1000 * 10);
+    resetState();
+  }, 1000 * 20);
 }
 
-function cannotHandle() {
+async function cannotHandle() {
   let m = {
     data: {
       alert: "taskCanceled",
     },
     token: registrationToken,
   };
-  sendFCM(m);
+  //sendFCM(m);
   state.alertState = "cannotHandle";
   setTimeout(() => {
-    state.alertState = "empty";
+    resetState();
   }, 1000 * 10);
 }
 
