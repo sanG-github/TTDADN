@@ -11,6 +11,8 @@ const { getDate } = require("date-fns");
 const mysql = require("mysql");
 const bcrypt = require("bcrypt");
 const { response } = require("express");
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
 
 require("dotenv").config();
 
@@ -18,6 +20,23 @@ const PORT = 3001;
 const app = express();
 const saltRounds = 10;
 
+
+//Swagger
+const swaggerOptions = {
+    swaggerDefinition: {
+        info: {
+            title: 'Library API',
+            version: '1.0.0'
+        }
+    },
+    apis: ['index.js']
+}
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
+app.use('/api-docs',swaggerUi.serve, swaggerUi.setup(swaggerDocs))
+
+// Using middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -49,7 +68,8 @@ const database = mysql.createPool({
     database: "DADN",
 });
 
-app.get("/statistic/temperature", (req, res) => {
+app.get("/statistic/:type", (req, res) => {
+    const type = req.params.type
     var sqlSelect = "";
     if (req.query) {
         var from = req.query.from.split(" ");
@@ -57,10 +77,10 @@ app.get("/statistic/temperature", (req, res) => {
         var start = [from[1], from[2], from[3]].join(" ");
         var end = [to[1], to[2], to[3]].join(" ");
 
-        sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime) `;
+        sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.${type} WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime) `;
     } else {
         sqlSelect =
-            "SELECT AVG(record) as record,day(datetime) as date FROM DADN.temperature GROUP BY day(datetime) GROUP BY day(datetime) ORDER BY day(datetime)";
+            `SELECT AVG(record) as record,day(datetime) as date FROM DADN.${type} GROUP BY day(datetime) GROUP BY day(datetime) ORDER BY day(datetime)`;
     }
     database.query(sqlSelect, (err, result) => {
         if (err) {
@@ -70,50 +90,15 @@ app.get("/statistic/temperature", (req, res) => {
     });
 });
 
-app.get("/statistic/moisture", (req, res) => {
-    var sqlSelect = "";
-    if (req.query) {
-        var from = req.query.from.split(" ");
-        var to = req.query.to.split(" ");
-        var start = [from[1], from[2], from[3]].join(" ");
-        var end = [to[1], to[2], to[3]].join(" ");
-
-        sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime)`;
-    } else {
-        sqlSelect =
-            "SELECT AVG(record) as record,day(datetime) as date FROM DADN.moisture GROUP BY day(datetime) ORDER BY day(datetime)";
-    }
-
-    database.query(sqlSelect, (err, result) => {
-        if (err) {
-            console.log(err);
-        }
-        res.send(result);
-    });
-});
-
-app.get("/statistic/humidity", (req, res) => {
-    var sqlSelect = "";
-    
-    if (req.query) {
-        var from = req.query.from.split(" ");
-        var to = req.query.to.split(" ");
-        var start = [from[1], from[2], from[3]].join(" ");
-        var end = [to[1], to[2], to[3]].join(" ");
-
-        sqlSelect = `SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') GROUP BY day(datetime) ORDER BY day(datetime)`;
-    } else {
-        sqlSelect =
-            "SELECT AVG(record) as record,day(datetime) as date FROM DADN.humidity GROUP BY day(datetime) ORDER BY day(datetime)";
-    }
-
-    database.query(sqlSelect, (err, result) => {
-        if (err) {
-            console.log(err);
-        }
-        res.send(result);
-    });
-});
+/**
+ * @swagger
+ * /device:
+ *  get:
+ *      description: GET all devices
+ *      responses:
+ *          200:
+ *              description: Success
+ */
 
 app.get("/device", (req, res) => {
     const sqlSelect = "SELECT * FROM `device`";
@@ -125,8 +110,24 @@ app.get("/device", (req, res) => {
     });
 });
 
-app.get("/temperature", (req, res) => {
-    const sqlSelect = "SELECT * FROM `temperature`";
+/**
+ * @swagger
+ * /record/{type} :
+ *  get:
+ *      description: GET all [TYPE] records at Adafruit IoT server.
+ *      parameters: 
+ *      - name: type
+ *        in : path
+ *        description: light | temperature | moisture | humidity
+ *        type: String
+ *      responses:
+ *          200:
+ *              description: Success
+ */
+
+app.get("/record/:type", (req, res) => {
+    const type = req.params.type
+    const sqlSelect = `SELECT * FROM DADN.${type}`;
     database.query(sqlSelect, (err, result) => {
         if (err) {
             console.log(err);
@@ -135,8 +136,23 @@ app.get("/temperature", (req, res) => {
     });
 });
 
-app.get("/moisture", (req, res) => {
-    const sqlSelect = "SELECT * FROM `moisture`";
+/**
+ * @swagger
+ * /constrain/{type}:
+ *  get:
+ *      description: GET all [TYPE] records.
+ *      parameters: 
+ *      - name: type
+ *        in : path
+ *        description: light | temperature | moisture | humidity
+ *        type: String
+ *      responses:
+ *          200:
+ *              description: Success
+ */
+
+app.get("/constrain/:type", (req, res) => {
+    let sqlSelect = "SELECT * FROM `constrain` WHERE `type` = '" + req.params.type + "'";
     database.query(sqlSelect, (err, result) => {
         if (err) {
             console.log(err);
@@ -145,36 +161,18 @@ app.get("/moisture", (req, res) => {
     });
 });
 
-app.get("/humidity", (req, res) => {
-    const sqlSelect = "SELECT * FROM `humidity`";
-    database.query(sqlSelect, (err, result) => {
-        if (err) {
-            console.log(err);
-        }
-        res.send(result);
-    });
-});
-
-app.get("/light", (req, res) => {
-    const sqlSelect = "SELECT * FROM `light`";
-    database.query(sqlSelect, (err, result) => {
-        if (err) {
-            console.log(err);
-        }
-        res.send(result);
-    });
-});
+/**
+ * @swagger
+ * /constrain:
+ *  get:
+ *      description: GET all constrains
+ *      responses:
+ *          200:
+ *              description: Success
+ */
 
 app.get("/constrain", (req, res) => {
-    let sqlSelect = "";
-    if (!req.query.type) {
-        sqlSelect = "SELECT * FROM `constrain`";
-    } else {
-        sqlSelect =
-            "SELECT * FROM `constrain` WHERE `type` = '" + req.query.type + "'";
-        console.log(sqlSelect);
-    }
-
+    let sqlSelect = "SELECT * FROM `constrain`";
     database.query(sqlSelect, (err, result) => {
         if (err) {
             console.log(err);
@@ -182,6 +180,37 @@ app.get("/constrain", (req, res) => {
         res.send(result);
     });
 });
+
+/**
+ * @swagger
+ * /setConstrain:
+ *  post:
+ *      description: POST new constrain to update.
+ *      parameters:
+ *      - name: item
+ *        in: body
+ *        required: true
+ *        schema:     
+ *           type: object
+ *           properties:
+ *               id:
+ *                   type: integer
+ *               type:
+ *                   type: string
+ *               upper_bound:
+ *                   type: integer
+ *               lower_bound:
+ *                   type: integer
+ *           example:
+ *                id: 0
+ *                type: light
+ *                upper_bound: 850
+ *                lower_bound: 650
+ *      responses:
+ *          200:
+ *              description: Success
+ */
+
 
 app.post("/setConstrain", (req, res) => {
 
@@ -196,11 +225,24 @@ app.post("/setConstrain", (req, res) => {
     database.query(
         sqlUpdate,(err, result) => {
         if (err) console.log(err);
-        else console.log("success");
+        else {
+            console.log("success")
+            res.sendStatus(200)
+        };
         
         }
     );
 });
+
+/**
+ * @swagger
+ * /currentFigure:
+ *  get:
+ *      description: GET last value of all type's record.
+ *      responses:
+ *          200:
+ *              description: Success
+ */
 
 app.get("/currentFigure", async (req, res) => {
     let light, moisture, temp, humidity;
@@ -450,6 +492,16 @@ io.on("connection", (socket) => {
     ioSocket = socket;
 });
 
+/**
+ * @swagger
+ * /getAllFeeds:
+ *  get:
+ *      description: GET all feeds of Adafruit IoT
+ *      responses:
+ *          200:
+ *              description: Success
+ */
+
 app.get("/getAllFeeds", (req, res) => {
     axios
         .get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`)
@@ -460,6 +512,7 @@ app.get("/getAllFeeds", (req, res) => {
 app.get("/", (req, res) => {
     console.log("SERVER connected");
 });
+
 
 app.post("/api/register", (req, res) => {
     const username = req.body.username;
@@ -498,6 +551,16 @@ app.post("/api/register", (req, res) => {
     else res.send({ message: "Password confirm doesnt match!" });
 });
 
+/**
+ * @swagger
+ * /api/login:
+ *  get:
+ *      description: GET loggedIn state and user (if already logged in)
+ *      responses:
+ *          200:
+ *              description: Success
+ */
+
 app.get("/api/login", (req, res) => {
     if (req.session.token) {
         res.send({ loggedIn: true, user: req.session.token });
@@ -505,6 +568,30 @@ app.get("/api/login", (req, res) => {
         res.send({ loggedIn: false });
     }
 });
+
+/**
+ * @swagger
+ * /api/login:
+ *  post:
+ *      description: POST account for logging in.
+ *      parameters:
+ *      - name: account
+ *        in: body
+ *        required: true
+ *        schema:     
+ *           type: object
+ *           properties:
+ *               username:
+ *                   type: string
+ *               password:
+ *                   type: string
+ *           example:
+ *                username: quan0402
+ *                password: quan0402
+ *      responses:
+ *          200:
+ *              description: Success
+*/
 
 app.post("/api/login", (req, res) => {
     const username = req.body.username;
@@ -526,7 +613,7 @@ app.post("/api/login", (req, res) => {
                         if (response) {
                             req.session.token = "abc" + result[0].password;
                             // console.log(req.session.token);
-                            res.send(result);
+                            res.sendStatus(200);
                         } else {
                             res.send({
                                 message: "Wrong username/password combination!",
@@ -540,6 +627,17 @@ app.post("/api/login", (req, res) => {
         }
     );
 });
+
+/**
+ * @swagger
+ * /api/logout:
+ *  get:
+ *      description: GET response after logging out
+ *      responses:
+ *          200:
+ *              description: Success
+ */
+ 
 
 app.get("/api/logout", (req, res) => {
     req.session.destroy(null);

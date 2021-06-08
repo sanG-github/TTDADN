@@ -18,7 +18,7 @@ function Record() {
       }
       
     useEffect(()=>{
-        axios.get(`http://localhost:3001/${type}`).then(response => {
+        axios.get(`http://localhost:3001/record/${type}`).then(response => {
             console.log('alo')
             setData(response.data);
         })

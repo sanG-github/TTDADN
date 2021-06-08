@@ -64,11 +64,11 @@ const Account = (props) => {
         e.preventDefault();
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
-
-        Axios.post(`http://localhost:3001/api/login`, {
-            username,
-            password,
-        }).then((response) => {
+        const account = {
+            username : username,
+            password : password
+        }
+        Axios.post(`http://localhost:3001/api/login`, account).then((response) => {
             if (response.data.message)
                 openNotification(
                     "Something happened!",

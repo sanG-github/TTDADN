@@ -8,6 +8,7 @@ import temperatureImg from "../img/temperature.png";
 import moistureImg from "../img/moisture.png";
 import humidityImg from "../img/humidity.png";
 import { Button } from "antd";
+import { Progress } from 'antd';
 
 const io = require("socket.io-client");
 
@@ -26,9 +27,34 @@ function GardenControl() {
     const [light, setLight] = useState({ data: 0 });
     const [moisture, setMoisture] = useState({ data: 0 });
     const [zone, setZone] = useState(0);
+    const [progress, setProgress] = useState(false);
+    const [percent, setPercent] = useState(0);
 
     function handelClick(zoneId){
         setZone(zoneId)
+    }
+
+    function handleLoading(){
+        setProgress(true);
+        console.log(progress);
+        
+        
+        setTimeout(() => {setPercent(percent+5)},1000);
+        setTimeout(() => {setPercent(percent+5)},2000);
+        setTimeout(() => {setPercent(percent+5)},3000);
+        setTimeout(() => {setPercent(percent+5)},4000);
+        setTimeout(() => {setPercent(percent+5)},5000);
+        setTimeout(() => {setPercent(percent+5)},6000);
+        setTimeout(() => {setPercent(percent+5)},7000);
+        setTimeout(() => {setPercent(percent+5)},8000);
+        setTimeout(() => {setPercent(percent+5)},9000);
+        setTimeout(() => {setPercent(percent+5)},10000);
+
+        
+        // setTimeout(() => {setProgress(false)},11000);
+        // console.log(progress);
+        
+
     }
 
     useEffect(() => {
@@ -140,10 +166,17 @@ function GardenControl() {
                             Độ ẩm không khí : {humidity} %
                         </p>
                     </div>    
-
+                    <div className="title">Zone : {zone}</div>
                     <div className="Module">
                          {zone}
-                    </div>           
+                    </div>   
+                    <div className="Module">
+                        <Button onClick={()=>handleLoading()}>Click</Button>
+                        {
+                            progress === true ? <Progress percent={percent} status="active" /> : ""
+                        }
+                        
+                    </div>        
                 </div>
                 
             </div>
