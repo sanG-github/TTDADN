@@ -36,24 +36,7 @@ function GardenControl() {
 
     function handleLoading(){
         setProgress(true);
-        console.log(progress);
-        
-        
-        setTimeout(() => {setPercent(percent+5)},1000);
-        setTimeout(() => {setPercent(percent+5)},2000);
-        setTimeout(() => {setPercent(percent+5)},3000);
-        setTimeout(() => {setPercent(percent+5)},4000);
-        setTimeout(() => {setPercent(percent+5)},5000);
-        setTimeout(() => {setPercent(percent+5)},6000);
-        setTimeout(() => {setPercent(percent+5)},7000);
-        setTimeout(() => {setPercent(percent+5)},8000);
-        setTimeout(() => {setPercent(percent+5)},9000);
-        setTimeout(() => {setPercent(percent+5)},10000);
-
-        
-        // setTimeout(() => {setProgress(false)},11000);
-        // console.log(progress);
-        
+        console.log(progress)
 
     }
 
@@ -171,12 +154,13 @@ function GardenControl() {
                          {zone}
                     </div>   
                     <div className="Module">
+                        <p>Mở mấy bơm</p>
                         <Button onClick={()=>handleLoading()}>Click</Button>
-                        {
-                            progress === true ? <Progress percent={percent} status="active" /> : ""
-                        }
-                        
-                    </div>        
+                    </div>   
+                    <div className="Module">
+                        <p>Đóng rèm</p>
+                        <Button onClick={()=>handleLoading()}>Click</Button>
+                    </div>     
                 </div>
                 
             </div>

@@ -114,7 +114,7 @@ app.get("/device", (req, res) => {
  * @swagger
  * /record/{type} :
  *  get:
- *      description: GET all [TYPE] records at Adafruit IoT server.
+ *      description: GET all [TYPE] records from database.
  *      parameters: 
  *      - name: type
  *        in : path
@@ -281,27 +281,27 @@ const io = socket(server);
 var client, client2;
 
 async function updateClient() {
-    await axios.get("http://dadn.esp32thanhdanh.link/").then(async (res) => {
+    await axios.get("http://dadn.esp32thanhdanh.link/").then((res) => {
         const options = {
             port: process.env.PORT,
             host: process.env.HOST,
             username: process.env.USERX,
-            password: res.data.keyBBC,
+            password: "aio_YWqQ75LLnzE66cGrbMWNhCka1Xhb",
         };
 
         const options2 = {
             port: process.env.PORT,
             host: process.env.HOST,
             username: process.env.USERX_02,
-            password: res.data.keyBBC1,
+            password: "aio_byWm36bA6XUDSqPfCfVboXjt3Uf1",
         };
 
-        console.log(options);
-        console.log(options2);
+        // console.log(options);
+        // console.log(options2);
 
-        client = await mqtt.connect("mqtt://" + options.host, options);
+        client = mqtt.connect("mqtt://" + options.host, options);
 
-        client2 = await mqtt.connect("mqtt://" + options2.host, options2);
+        client2 = mqtt.connect("mqtt://" + options2.host, options2);
 
         client.on("connect", function () {
             console.log("mqtt: server CSE_BBC connected!");
@@ -312,27 +312,27 @@ async function updateClient() {
         });
     });
 
-    axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
-        const feeds = res.data;
-        console.log(
-            `----------------------\nAll feeds from ${process.env.USERX}:`
-        );
-        feeds.map((feed) => {
-            console.log("\t", feed.name);
-            client.subscribe(process.env.USERX + "/feeds/" + feed.name);
-        });
-    });
+    // axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
+    //     const feeds = res.data;
+    //     console.log(
+    //         `----------------------\nAll feeds from ${process.env.USERX}:`
+    //     );
+    //     feeds.map((feed) => {
+    //         console.log("\t", feed.name);
+    //         client.subscribe(process.env.USERX + "/feeds/" + feed.name);
+    //     });
+    // });
 
-    axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
-        const feeds = res.data;
-        console.log(
-            `----------------------\nAll feeds from ${process.env.USERX_02}:`
-        );
-        feeds.map((feed) => {
-            console.log("\t", feed.name);
-            client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
-        });
-    });
+    // axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
+    //     const feeds = res.data;
+    //     console.log(
+    //         `----------------------\nAll feeds from ${process.env.USERX_02}:`
+    //     );
+    //     feeds.map((feed) => {
+    //         console.log("\t", feed.name);
+    //         client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
+    //     });
+    // });
 
     // message when data changed from
     client.on("message", function (topic, message) {

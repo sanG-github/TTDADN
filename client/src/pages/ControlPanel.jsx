@@ -370,7 +370,7 @@ function ControlPanel() {
             }
             <div className="title">Thông số ràng buộc</div>
             <div>
-                <Table dataSource={constrains}>
+                <Table dataSource={constrains} >
                     <Column title="ID" dataIndex="id" key="id" />
                     <Column title="Thông số ràng buộc" dataIndex="type" key="type" />
                     <Column title="Chặn dưới" dataIndex="lower_bound" key="lower_bound" />
