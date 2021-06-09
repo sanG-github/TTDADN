@@ -251,6 +251,7 @@ alertEmitter.on("clientready", () => {
       );
       console.log("--------State");
       console.log(state);
+
       if (state.alertState == "empty") {
         checkConstrain(table, values.data);
       }
@@ -281,12 +282,15 @@ alertEmitter.on("client2ready", () => {
       );
       console.log("--------State");
       console.log(state);
-      if (state.alertState == "empty") {
-        checkConstrain(table, values.data);
+      if (state.active){
+        if (state.alertState == "empty") {
+          checkConstrain(table, values.data);
+        }
+        if (state.alertState == "processing") {
+          checkToCompleteTask(table, values.data);
+        }
       }
-      if (state.alertState == "processing") {
-        checkToCompleteTask(table, values.data);
-      }
+      
     }
   });
 });
@@ -662,6 +666,7 @@ async function sendFCM(message) {
 }
 
 var state = {
+  active: true,
   alertState: "empty",
   moisture: "",
   humid: "",
@@ -729,7 +734,24 @@ alertEmitter.on("handle", () => {
     }
   }, 1000 * 10);
 });
-
+app.get("/api/activatealert", (req,res)=>{
+  res.json({
+    active: state.active
+  })
+})
+app.post("/api/activatealert", (req, res)){
+  if(req.body.activate == "true"){
+    state.active = true
+  }
+  else{
+    state.active = false
+  }
+  res.json(
+    {
+      active: state.active
+    }
+  )
+}
 app.post("/api/receiveresponefromapp", (req, res) => {
   client.publish(
     messageDeviceIot.LoaBuzzer.feed,
