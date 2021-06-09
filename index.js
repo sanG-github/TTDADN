@@ -251,13 +251,14 @@ alertEmitter.on("clientready", () => {
       );
       console.log("--------State");
       console.log(state);
-
+      if (state.active){
       if (state.alertState == "empty") {
         checkConstrain(table, values.data);
       }
       if (state.alertState == "processing") {
         checkToCompleteTask(table, values.data);
       }
+    }
     }
   });
 });
@@ -282,13 +283,13 @@ alertEmitter.on("client2ready", () => {
       );
       console.log("--------State");
       console.log(state);
-      if (state.active){
+      
         if (state.alertState == "empty") {
           checkConstrain(table, values.data);
         }
         if (state.alertState == "processing") {
           checkToCompleteTask(table, values.data);
-        }
+        
       }
       
     }
@@ -736,22 +737,23 @@ alertEmitter.on("handle", () => {
 });
 app.get("/api/activatealert", (req,res)=>{
   res.json({
-    active: state.active
+    active: state.active.toString()
   })
 })
-app.post("/api/activatealert", (req, res)){
+app.post("/api/activatealert", (req, res)=>{
   if(req.body.activate == "true"){
     state.active = true
   }
   else{
     state.active = false
+    resetState();
   }
   res.json(
     {
-      active: state.active
+      active: state.active.toString()
     }
   )
-}
+})
 app.post("/api/receiveresponefromapp", (req, res) => {
   client.publish(
     messageDeviceIot.LoaBuzzer.feed,
