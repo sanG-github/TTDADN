@@ -16,7 +16,7 @@ const admin = require("firebase-admin");
 const serviceAccount = require("./smarttomatofarm-firebase-adminsdk-j0civ-24e81aa790.json");
 const registrationToken =
   "ceYpnIiuTSy3dR_dzjBQ1R:APA91bHS7ZELu_e8AxiVXAxCMrDsRibAztzb8_G9iT8zFbj-GKgNKbm4GeegSq4oFbIlRbVNL9Jm4FpDmQnnECh_HXBQLRkPp-lw8679elSgRL_pSHz8MpFsoejn9-zpy1ocPkHpsp9F";
-const messageDeviceIot = require("./message-device-iot.json");
+
 const alertEvents = require("events");
 const alertEmitter = new alertEvents.EventEmitter();
 
@@ -158,14 +158,14 @@ async function updateClient() {
   };
   client = mqtt.connect("mqtt://" + options.host, options);
   client.on("connect", function () {
-    console.log("mqtt: server CSE_BBC connected!");
+    console.log("mqtt: server ldq connected!");
   });
   client2 = mqtt.connect("mqtt://" + options.host, options);
   client2.on("connect", function () {
-    console.log("mqtt: server CSE_BBC connected!");
+    console.log("mqtt: server ldq connected!");
   });
 
-  // await axios.get("http://dadn.esp32thanhdanh.link/").then((res) => {
+  // await axios.get("http://dadn.herokuapp.com/").then((res) => {
   //   const options = {
   //     port: process.env.PORT,
   //     host: process.env.HOST,
@@ -202,7 +202,7 @@ axios.get(`https://io.adafruit.com/api/v2/quanledinh/feeds`).then((res) => {
   feeds.map((feed) => {
     console.log("\t", feed.name);
     client.subscribe(process.env.USERX_LDQ + "/feeds/" + feed.name);
-    client2.subscribe(process.env.USERX_LDQ + "/feeds/" + feed.name);
+    client.subscribe(process.env.USERX_LDQ + "/feeds/" + feed.name);
   });
   alertEmitter.emit("clientready");
 });
@@ -251,14 +251,14 @@ alertEmitter.on("clientready", () => {
       );
       console.log("--------State");
       console.log(state);
-      if (state.active){
-      if (state.alertState == "empty") {
-        checkConstrain(table, values.data);
+      if (state.active) {
+        if (state.alertState == "empty") {
+          checkConstrain(table, values.data);
+        }
+        if (state.alertState == "processing" || state.alertState == "pending|cannotHandle") {
+          checkToCompleteTask(table, values.data);
+        }
       }
-      if (state.alertState == "processing") {
-        checkToCompleteTask(table, values.data);
-      }
-    }
     }
   });
 });
@@ -283,15 +283,14 @@ alertEmitter.on("client2ready", () => {
       );
       console.log("--------State");
       console.log(state);
-      
+      if (state.active) {
         if (state.alertState == "empty") {
           checkConstrain(table, values.data);
         }
-        if (state.alertState == "processing") {
+        if (state.alertState == "processing" || state.alertState == "pending|cannotHandle") {
           checkToCompleteTask(table, values.data);
-        
+        }
       }
-      
     }
   });
 });
@@ -559,7 +558,7 @@ async function loadConstrain() {
 //loadConstrain();
 
 function checkToCompleteTask(type, data) {
-  console.log("======= \n checkToCompleteTask");
+  console.log("-----checkToCompleteTask");
   console.log("state[" + type + "]");
   if (type == "temperature") {
     let datath = data.split("-");
@@ -570,35 +569,34 @@ function checkToCompleteTask(type, data) {
         dtemperature <= constrain.temperature.upper_bound &&
         dtemperature >= constrain.temperature.lower_bound
       )
-      completetask();
+        completetask();
       return;
     }
     if (state.humid != "") {
       if (
         dhumid <= constrain.humid.upper_bound &&
         dhumid >= constrain.humid.lower_bound
-      ){
+      ) {
         completetask();
-        console.log("check complete ok")
+        console.log("check complete ok");
       }
-      
+
       return;
     }
-  }
-  else{
+  } else {
     if (state[type] != "") {
       let dataint = parseInt(data);
       if (
         dataint <= constrain[type].upper_bound &&
         dataint >= constrain[type].lower_bound
       )
-      completetask();
+        completetask();
     }
   }
 }
 
 function checkConstrain(type, data) {
-  console.log("---- checkconstrain");
+  console.log("-----checkconstrain");
   let flag = false;
   if (type == "temperature") {
     let datath = data.split("-");
@@ -635,20 +633,14 @@ function checkConstrain(type, data) {
     state.temperature != "" ||
     state.humid == mLowerBound
   ) {
-    console.log("---\ncheck cannotHanlde");
+    console.log("-----\ncheck cannotHanlde");
     alertEmitter.emit("cannotHandle");
   } else if (flag) {
-    console.log("---\ncheck handle");
+    console.log("-----\ncheck handle");
     console.log(state);
     alertEmitter.emit("handle");
   }
 }
-
-//test sendmessage
-app.get("/api/sendmessage", (req, res) => {
-  state.isAlert = true;
-  sendMessageAlert(messageAlert);
-});
 
 /////--------------------------
 
@@ -663,7 +655,7 @@ async function sendFCM(message) {
     .catch((error) => {
       console.log("Error sending message:", error);
     });
-  console.log("-----------\nsendfcm");
+  console.log("-----\nsendfcm");
 }
 
 var state = {
@@ -678,12 +670,9 @@ var state = {
 var alertTimeOut;
 
 alertEmitter.on("cannotHandle", () => {
-  console.log("-------cannotHandle");
-  client.publish(
-    messageDeviceIot.LoaBuzzer.feed,
-    messageDeviceIot.LoaBuzzer.activate
-  );
-  state.alertState = "pending";
+  console.log("-----cannotHandle");
+  pub2Loa("activate");
+  state.alertState = "pending|cannotHandle";
   let m = {
     data: {
       title: "Tình trạng khu vườn không tốt",
@@ -692,8 +681,8 @@ alertEmitter.on("cannotHandle", () => {
         "Hiện tại, chúng tôi không thể cải thiện tình trạng của khu vườn. Hãy kiểm tra khu vườn ngay.",
       alert: "cannotHandle",
       id: "dadn",
-      moisture: state.moisture,
-      temperature: state.temperature,
+      soil: state.moisture,
+      temp: state.temperature,
       light: state.light,
       humid: state.humid,
     },
@@ -702,11 +691,8 @@ alertEmitter.on("cannotHandle", () => {
   sendFCM(m);
 });
 alertEmitter.on("handle", () => {
-  console.log("handle");
-  client.publish(
-    messageDeviceIot.LoaBuzzer.feed,
-    messageDeviceIot.LoaBuzzer.activate
-  );
+  console.log("-----handle");
+  pub2Loa("activate");
   state.alertState = "pending";
   let m = {
     data: {
@@ -716,8 +702,8 @@ alertEmitter.on("handle", () => {
         "Chúng tôi sẽ thực hiện công tác điều chỉnh nếu bạn không xác nhận trong 5 phút.",
       alert: "alert",
       id: "dadn",
-      moisture: state.moisture,
-      temperature: state.temperature,
+      soil: state.moisture,
+      temp: state.temperature,
       light: state.light,
       humid: state.humid,
     },
@@ -727,41 +713,33 @@ alertEmitter.on("handle", () => {
   console.log(state);
   alertTimeOut = setTimeout(() => {
     if (state.alertState == "pending") {
-      client.publish(
-        messageDeviceIot.LoaBuzzer.feed,
-        messageDeviceIot.LoaBuzzer.deactive
-      );
+      pub2Loa("deactivate");
       runTask();
     }
   }, 1000 * 10);
 });
-app.get("/api/activatealert", (req,res)=>{
+app.get("/api/activatealert", (req, res) => {
   res.json({
-    active: state.active.toString()
-  })
-})
-app.post("/api/activatealert", (req, res)=>{
-  if(req.body.activate == "true"){
-    state.active = true
-  }
-  else{
-    state.active = false
+    active: state.active.toString(),
+  });
+});
+app.post("/api/activatealert", (req, res) => {
+  if (req.body.activate == "true") {
+    state.active = true;
+  } else {
+    state.active = false;
     resetState();
   }
-  res.json(
-    {
-      active: state.active.toString()
-    }
-  )
-})
+  res.json({
+    active: state.active.toString(),
+  });
+});
 app.post("/api/receiveresponefromapp", (req, res) => {
-  client.publish(
-    messageDeviceIot.LoaBuzzer.feed,
-    messageDeviceIot.LoaBuzzer.deactive
-  );
   console.log("-----receiveresponefromapp");
   console.log("body.action: " + req.body.action);
-  if(state.alertState=="pending"){
+
+  if (state.alertState == "pending" ||state.alertState == "pending|cannotHandle") {
+    pub2Loa("deactivate");
     if (req.body.action == "acceptTask") {
       console.log("acceptTask");
       res.json({ id: req.body.id, status: "processing" });
@@ -779,11 +757,9 @@ app.post("/api/receiveresponefromapp", (req, res) => {
       cannotHandle();
       return;
     }
+  } else {
+    res.json({ id: "", status: "" });
   }
-  else{
-    res.json({id: "", status: ""})
-  }
-  
 });
 
 function runTask() {
@@ -802,28 +778,16 @@ function runTask() {
   };
   sendFCM(m);
   if (state.moisture == mLowerBound) {
-    client2.publish(
-      messageDeviceIot.MayBomMini.feed,
-      messageDeviceIot.MayBomMini.activate
-    );
+    pub2MayBom("activate");
   }
   if (state.humid == mUpperBound) {
-    client.publish(
-      messageDeviceIot.CanhQuat.feed,
-      messageDeviceIot.CanhQuat.activate
-    );
+    pub2Quat("activate");
   }
   if (state.light == mUpperBound) {
-    client2.publish(
-      messageDeviceIot.MaiChe.feed,
-      messageDeviceIot.MaiChe.activate
-    );
+    pub2MaiChe("activate-dong");
   }
   if (state.light == mLowerBound) {
-    client2.publish(
-      messageDeviceIot.MaiChe.feed,
-      messageDeviceIot.MaiChe.deactive
-    );
+    pub2MaiChe("activate-mo");
   }
 }
 
@@ -834,19 +798,15 @@ function completetask() {
     },
     token: registrationToken,
   };
+  console.log("completeTask")
   sendFCM(m);
   if (state.moisture == mLowerBound) {
-    client2.publish(
-      messageDeviceIot.MayBomMini.feed,
-      messageDeviceIot.MayBomMini.deactivate
-    );
+    pub2MayBom("deactivate");
   }
   if (state.humid == mUpperBound) {
-    client.publish(
-      messageDeviceIot.CanhQuat.feed,
-      messageDeviceIot.CanhQuat.deactive
-    );
+    pub2Quat("deactivate");
   }
+  if (state.light != "") pub2MaiChe("deactivate");
   resetState();
 }
 
@@ -883,10 +843,60 @@ async function cannotHandle() {
   state.alertState = "cannotHandle";
   setTimeout(() => {
     resetState();
-  }, 1000 * 10);
+  }, 1000 * 20);
 }
 
-//alertEmitter.on("runTask", runTask);
+function pub2Quat(action) {
+  let data;
+  if (action == "activate") data = -200;
+  else data = 0;
+  let feed = `quanledinh/feeds/bk-iot-drv`;
+  let id = [10];
+  id.forEach((i) => {
+    let message = `{\"id\":\"${i}\",\"name\":\"DRV_PWM\",\"data\":\"${data}\",\"unit\":\"\"}`;
+    client.publish(feed, message);
+  });
+}
+
+function pub2MayBom(action) {
+  let data;
+  if (action == "activate") data = 1;
+  else data = 0;
+  let feed = `quanledinh/feeds/bk-iot-relay`;
+  let id = [11];
+
+  id.forEach((i) => {
+    let message = `{\"id\": \"${i}\", \"name\": \"RELAY\", \"data\": \"${data}\", \"unit\": \"\"}`;
+    client2.publish(feed, message);
+  });
+}
+
+function pub2MaiChe(action) {
+  let data;
+  if (action == "activate-mo") data = -150;
+  else if (action == "activate-dong") data = 150;
+  else data = 0;
+  let feed = `quanledinh/feeds/bk-iot-drv`;
+  let id = [11];
+
+  id.forEach((i) => {
+    let message = `{\"id\":\"${i}\",\"name\":\"DRV_PWM\",\"data\":\"${data}\",\"unit\":\"\"}`;
+    client.publish(feed, message);
+  });
+}
+
+function pub2Loa(action) {
+  let data;
+  if (action == "activate") data = 500;
+  else data = 0;
+  let feed = `quanledinh/feeds/bk-iot-speaker`;
+  let id = [2];
+
+  id.forEach((i) => {
+    let message = `{\"id\":\"${i}\",\"name\":\"SPEAKER\",\"data\":\"${data}\",\"unit\":\"\"}`;
+    client.publish(feed, message);
+  });
+}
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
