@@ -3,6 +3,13 @@ import React, { useState } from "react";
 import { notification } from "antd";
 import { SmileOutlined } from "@ant-design/icons";
 import Axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faLeaf} from "@fortawesome/free-solid-svg-icons";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    updateUsername
+}
+from "../redux/action.js"
 
 Axios.defaults.withCredentials = true;
 
@@ -21,6 +28,8 @@ const openNotification = (message, description, isOk) => {
 
 const Account = (props) => {
     const [currentView, setCurentView] = useState("logIn");
+
+    const dispatch = useDispatch();
 
     const handleSignUp = (e) => {
         e.preventDefault();
@@ -55,11 +64,11 @@ const Account = (props) => {
         e.preventDefault();
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
-
-        Axios.post(`http://localhost:3001/api/login`, {
-            username,
-            password,
-        }).then((response) => {
+        const account = {
+            username : username,
+            password : password
+        }
+        Axios.post(`http://localhost:3001/api/login`, account).then((response) => {
             if (response.data.message)
                 openNotification(
                     "Something happened!",
@@ -72,7 +81,9 @@ const Account = (props) => {
                     `Welcome back ${response.data[0].username}`,
                     true
                 );
+                dispatch(updateUsername(username))
                 props.setLoggedIn(true);
+                
             }
         });
     };
@@ -80,6 +91,7 @@ const Account = (props) => {
     const SignUpForm = () => {
         return (
             <form>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
                 <h2>Sign Up!</h2>
                 <fieldset>
                     <legend>Create Account</legend>
@@ -109,6 +121,7 @@ const Account = (props) => {
     const LogInForm = () => {
         return (
             <form>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
                 <h2>Welcome Back!</h2>
                 <fieldset>
                     <legend>Log In</legend>
@@ -143,6 +156,7 @@ const Account = (props) => {
     const PWResetForm = () => {
         return (
             <form>
+                <div className="Header" style={{color: "black"}}><FontAwesomeIcon icon={faLeaf} /> Smart Tomatoes Garden</div>
                 <h2>Reset Password</h2>
                 <fieldset>
                     <legend>Password Reset</legend>

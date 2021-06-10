@@ -4,6 +4,25 @@
     font-weight: 500;
 }
 
+.PieChart {
+    width: 25%;
+}
+
 .Chart {
-    
+    background-color: white;
+    width: 800px;
+    padding: 20px 10px;
+    border-radius: 20px;
+    margin: 20px auto;
+}
+
+.Inner {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.Datepicker {
+    position: fixed;
+    right: 5%;
 }

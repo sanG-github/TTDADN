@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "antd/dist/antd.css";
 import "../styles/ControlPanel.css";
 import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faEdit} from "@fortawesome/free-solid-svg-icons";
 import { Card } from "antd";
 import { Switch } from "antd";
 import { io } from "socket.io-client";
@@ -9,8 +11,19 @@ import { Select } from "antd";
 import { Slider } from "antd";
 import { Input } from "antd";
 import { Button } from "antd";
+import { Table} from 'antd';
+import TextField from '@material-ui/core/TextField';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import 'animate.css'
+// import Record from "./Record";
+const { Column } = Table;
 const { Option } = Select;
 const { Search } = Input;
+
 require("dotenv").config();
 
 const socket = io("http://localhost:3001", {
@@ -44,14 +57,15 @@ function publishData(datum, value) {
     console.log("Success");
 }
 
-function Led({ datum }) {
-    function onChange(value) {
+function Led({datum}){
+
+    function onChange(value){
         //publish
         publishData(datum, value);
     }
 
     return (
-        <Card title={datum.name} style={{ width: 300, margin: "10px 10px" }}>
+        <Card title={datum.name} style={{ width: 300, margin: "10px 10px" ,borderRadius: "20px"}}>
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
             <span>Chọn :</span>
@@ -83,7 +97,7 @@ function Speaker({ datum }) {
         <Card
             title={datum.name}
             extra=""
-            style={{ width: 300, margin: "10px 10px" }}
+            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
         >
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
@@ -105,9 +119,11 @@ function LCD({ datum }) {
     const [state, setState] = useState("");
 
     function onSearch(value) {
-        if (value.length < 12) {
-            publishData(datum, value);
-        }
+        // if (value.length < 12) {
+        //     publishData(datum, value);
+        // }
+
+        publishData(datum, value);
     }
 
     function onChange(e) {
@@ -129,7 +145,7 @@ function LCD({ datum }) {
                     }}
                 />
             }
-            style={{ width: 300, margin: "10px 10px" }}
+            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
         >
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
@@ -162,7 +178,7 @@ function WaterPump({ datum }) {
                     }}
                 />
             }
-            style={{ width: 300, margin: "10px 10px" }}
+            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
         >
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
@@ -198,7 +214,7 @@ function Engine({ datum }) {
                     }}
                 />
             }
-            style={{ width: 300, margin: "10px 10px" }}
+            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
         >
             <p>ID thiết bị: {datum.id}</p>
             <p>{datum.status}</p>
@@ -235,12 +251,73 @@ function Engine({ datum }) {
 
 function ControlPanel() {
     const [data, setData] = useState([]);
+    const [constrains, setConstrains] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [item, setItem] = useState({});
+   
+    //Các function để UPDATE ràn buộc mới xuống database
+    const handleClickOpen = (record) => {
+        console.log("open")
+        setItem(record)
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        console.log("close")
+        setOpen(false);
+    };
+
+    const handleSubmit = () => {
+        console.log(item)
+        axios.post("http://localhost:3001/setConstrain", item)
+        .then((res) => {
+            if (res.status === 200) {
+                console.log("success");
+            }
+        })
+        .catch((err) => {
+            console.log("fail");
+        });
+        setTimeout ( handleClose,1000);
+        
+        
+    };
+
+    const handleChangeUpper = (e)=>{
+        setItem(
+            {
+                id : item.id,
+                type : item.type,
+                upper_bound : parseInt(e.target.value),
+                lower_bound : parseInt(item.lower_bound)
+            }
+        )
+    }
+
+    const handleChangeLower = (e)=>{
+        setItem(
+            {
+                id : item.id,
+                type : item.type,
+                upper_bound : parseInt(item.upper_bound),
+                lower_bound : parseInt(e.target.value)
+            }
+        )
+
+    }
 
     useEffect(() => {
         axios.get(`http://localhost:3001/device`).then((response) => {
             setData(response.data);
         });
-    }, []);
+
+        axios.get(`http://localhost:3001/constrain`).then((response) => {
+            setConstrains(response.data);
+        });
+
+    }, [open]);
+
+    
 
     // const changeFeedData = (checked) => {
 
@@ -259,37 +336,101 @@ function ControlPanel() {
     //     );
     // };
 
+    
+
     return (
         <div>
-            <div className="title">Bảng điều khiển</div>
+            <div className="title">Bảng điều khiển thiết bị</div>
             <div className="Device-block">
                 {data &&
                     data
                         .filter((datum) => datum.type === "output")
-                        .map((datum) => {
+                        .map((datum,id) => {
                             switch (datum.feedName) {
                                 case "LED":
-                                    return <Led datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Led datum={datum} /></div>
+                                    
                                 case "LCD":
-                                    return <LCD datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><LCD datum={datum} /></div>
+                                    
                                 case "RELAY":
-                                    return <WaterPump datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><WaterPump datum={datum} /></div>
+                               
                                 case "DRV_PWM":
-                                    return <Engine datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Engine datum={datum} /></div>
+                                    
                                 case "SPEAKER":
-                                    return <Speaker datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Speaker datum={datum} /></div>
+                      
                                 default:
                                     break;
                             }
                         })}
             </div>
+
+            {
+                //Table hiển thị các ràn buộc
+            }
+            <div className="title">Thông số ràng buộc</div>
+            <div>
+                <Table dataSource={constrains} >
+                    <Column title="ID" dataIndex="id" key="id" />
+                    <Column title="Thông số ràng buộc" dataIndex="type" key="type" />
+                    <Column title="Chặn dưới" dataIndex="lower_bound" key="lower_bound" />
+                    <Column title="Chặn trên" dataIndex="upper_bound" key="upper_bound" />
+                    <Column title="Chỉnh sửa" render={(text, record) => {
+                        
+                        return (
+                            <Button variant="outlined" color="primary" onClick={()=>handleClickOpen(record)}>
+                                <FontAwesomeIcon icon={faEdit}/>
+                            </Button>
+                        )
+                    }}/>
+                </Table>
+            </div>
+
+            {// Dialog để edit ràng buộc
+            }
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Thay đổi ràng buộc</DialogTitle>
+                <DialogContent>
+                <DialogContentText>
+                    Nhập thông số ràn buộc mới cho {item.type}
+                </DialogContentText>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="name"
+                    label="Chặn trên mới"
+                    type="text"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChangeUpper(e)}
+                    defaultValue={item.upper_bound}
+                />
+                <TextField
+                    margin="dense"
+                    id="name"
+                    label="Chặn dưới mới"
+                    type="text"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChangeLower(e)}
+                    defaultValue={item.lower_bound}
+                />
+                </DialogContent>
+                <DialogActions>
+                <Button onClick={handleClose} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={handleSubmit} color="primary">
+                    Thay đổi
+                </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }
+
 
 export default ControlPanel;

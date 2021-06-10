@@ -3,11 +3,17 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 import SiderDemo from "./Layout";
+import { Provider } from 'react-redux'
+
+import store from './redux/store'
 
 ReactDOM.render(
-    <React.StrictMode>
-        <SiderDemo />
-    </React.StrictMode>,
+    <Provider store={store}>
+        <React.StrictMode>
+            <SiderDemo />
+        </React.StrictMode>
+    </Provider>
+    ,
     document.getElementById("root")
 );
 
