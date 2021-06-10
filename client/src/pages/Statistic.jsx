@@ -123,7 +123,7 @@ function Statistic() {
 
             <div className="Inner">
                 <div className="ChartBlock">
-                    <div className="Chart animate__animated animate__fadeInRight animate__delay-1s">
+                    <div className="Chart animate__animated animate__fadeInRight" style={{animationDelay: "0.4s"}}>
                         <LineChart width={750} height={300} data={temp} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                 <Line type="monotone" dataKey="uv" stroke="#e3242b" />
                                 <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
@@ -133,7 +133,7 @@ function Statistic() {
                         <div className="title">Biểu độ nhiệt độ trung bình</div>
                     </div>
                     
-                    <div className="Chart animate__animated animate__fadeInRight animate__delay-2s">
+                    <div className="Chart animate__animated animate__fadeInRight animate__delay-2s" style={{animationDelay: "0.6s"}}>
                         <AreaChart
                                 width={750}
                                 height={300}
@@ -155,7 +155,7 @@ function Statistic() {
                         <div className="title">Biểu đồ độ ẩm đất trung bình</div>
                     </div>
 
-                    <div className="Chart animate__animated animate__fadeInRight animate__delay-3s">
+                    <div className="Chart animate__animated animate__fadeInRight animate__delay-3s" style={{animationDelay: "0.8s"}}>
                     <BarChart
                             width={750}
                             height={300}

@@ -18,6 +18,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import 'animate.css'
 // import Record from "./Record";
 const { Column } = Table;
 const { Option } = Select;
@@ -335,6 +336,8 @@ function ControlPanel() {
     //     );
     // };
 
+    
+
     return (
         <div>
             <div className="title">Bảng điều khiển thiết bị</div>
@@ -342,23 +345,23 @@ function ControlPanel() {
                 {data &&
                     data
                         .filter((datum) => datum.type === "output")
-                        .map((datum) => {
+                        .map((datum,id) => {
                             switch (datum.feedName) {
                                 case "LED":
-                                    return <Led datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Led datum={datum} /></div>
+                                    
                                 case "LCD":
-                                    return <LCD datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><LCD datum={datum} /></div>
+                                    
                                 case "RELAY":
-                                    return <WaterPump datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><WaterPump datum={datum} /></div>
+                               
                                 case "DRV_PWM":
-                                    return <Engine datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Engine datum={datum} /></div>
+                                    
                                 case "SPEAKER":
-                                    return <Speaker datum={datum} />;
-                                    break;
+                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Speaker datum={datum} /></div>
+                      
                                 default:
                                     break;
                             }

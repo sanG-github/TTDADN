@@ -7,6 +7,9 @@ import lightImg from "../img/light.png";
 import temperatureImg from "../img/temperature.png";
 import moistureImg from "../img/moisture.png";
 import humidityImg from "../img/humidity.png";
+import { notification } from "antd";
+import { SmileOutlined } from "@ant-design/icons";
+import 'animate.css'
 
 
 const io = require("socket.io-client");
@@ -18,6 +21,19 @@ const socket = io("http://localhost:3001", {
         "my-custom-header": "1234", // WARN: this will be ignored in a browser
     },
 });
+
+const openNotification = (message, description, isOk) => {
+    let icon;
+    if (!isOk)
+        icon = <SmileOutlined rotate={180} style={{ color: "#eb2f96" }} />;
+    else icon = <SmileOutlined style={{ color: "#108ee9" }} />;
+
+    notification.open({
+        message,
+        description,
+        icon,
+    });
+};
 
 // Mới nhất : Quân viết cho phần ràn buộc
 
@@ -84,11 +100,11 @@ function CurrentFigure() {
             <div className="Current-Figure">
                 <div className="title">Thông số vườn cà chua hiện tại</div>
                 <div className="Banner">
-                    <img className="img" src={tree} alt="" />
+                    <img className="img animate__animated animate__slow animate__shakeY animate__infinite" src={tree} alt="" />
                 </div>
     
                 { constrains.length !== 0 ? 
-                <div className="Figure-Block">
+                <div className="Figure-Block animate__animated animate__fadeIn ">
                     <div className="Figure">
                         <img
                             className="img"
@@ -107,7 +123,7 @@ function CurrentFigure() {
                             {temp} độ C
                         </p>
                     </div>
-                    <div className="Figure">
+                    <div className="Figure animate__animated animate__fadeIn"  style={{animationDelay: "0.2s"}}>
                         <img
                             className="img"
                             style={{ width: "30px", margin: "0 5px" }}
@@ -125,7 +141,7 @@ function CurrentFigure() {
                             {light.data}
                         </p>{" "}
                     </div>
-                    <div className="Figure">
+                    <div className="Figure animate__animated animate__fadeIn"  style={{animationDelay: "0.4s"}}>
                         <img
                             className="img"
                             style={{ width: "30px", margin: "0 5px" }}
@@ -146,7 +162,7 @@ function CurrentFigure() {
                             
                         </p>
                     </div>
-                    <div className="Figure">
+                    <div className="Figure animate__animated animate__fadeIn"  style={{animationDelay: "0.6s"}}>
                         <img
                             className="img"
                             style={{ width: "30px", margin: "0 5px" }}

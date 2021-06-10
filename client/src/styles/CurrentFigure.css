@@ -1,7 +1,7 @@
 .img {
     width: 30%;
     margin: 30px 35%;
-    animation: moveUpDown 2s infinite ease-in-out;
+    --animate-duration: 5s;
 }
 
 .Current-Figure {
@@ -19,6 +19,7 @@
     background-color: white;
     color: black;
     padding: 20px 0;
+
 }
 
 .Figure-Block {
@@ -27,7 +28,7 @@
     flex-direction: row;
     justify-content: space-between;
     flex-wrap: wrap;
-
+    animation-delay: calc(--order*200ms) ;
 }
 
 .Header {

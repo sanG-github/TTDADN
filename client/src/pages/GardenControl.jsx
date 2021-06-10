@@ -11,6 +11,7 @@ import { notification } from "antd";
 import { Button } from "antd";
 // import { Progress } from 'antd';
 import { SmileOutlined } from "@ant-design/icons";
+import 'animate.css'
 
 
 const io = require("socket.io-client");
@@ -111,19 +112,19 @@ function GardenControl() {
 
             <div className="Inner">
                 <div className="Display">
-                    <div className="Garden">
+                    <div className="Garden animate__animated animate__fadeInDown" >
                         <button onClick={() => handelClick(1)}>
-                            <div className="Block Zone1"><p className="Rotate">Zone 1 <FontAwesomeIcon icon={faInfoCircle}/></p> </div>
+                            <div className="Block Zone1 animate__animated animate__fadeInDown" style={{animationDelay: "1.2s"}}><p className="Rotate">Zone 1 <FontAwesomeIcon icon={faInfoCircle}/></p> </div>
                         </button>
                         
-                        <button onClick={() => handelClick(2)}><div className="Block Zone2"><p className="Rotate">Zone 2 <FontAwesomeIcon icon={faInfoCircle}/></p> </div></button>
-                        <button onClick={() => handelClick(3)} className="Block Zone3">Zone 3 <FontAwesomeIcon icon={faInfoCircle}/></button>
-                        <button onClick={() => handelClick(4)}><div className="Block Zone4"><p className="Rotate">Zone 4 <FontAwesomeIcon icon={faInfoCircle}/></p> </div></button>
-                        <button onClick={() => handelClick(5)}><div className="Block Zone5"><p className="Rotate">Zone 5 <FontAwesomeIcon icon={faInfoCircle}/></p> </div></button>
+                        <button onClick={() => handelClick(2)}><div className="Block Zone2 animate__animated animate__fadeInDown" style={{animationDelay: "1.4s"}}><p className="Rotate">Zone 2 <FontAwesomeIcon icon={faInfoCircle}/></p> </div></button>
+                        <button onClick={() => handelClick(3)} className="Block Zone3 animate__animated animate__fadeInDown" style={{animationDelay: "1.6s"}}>Zone 3 <FontAwesomeIcon icon={faInfoCircle}/></button>
+                        <button onClick={() => handelClick(4)}><div className="Block Zone4 animate__animated animate__fadeInDown" style={{animationDelay: "1.8s"}}><p className="Rotate">Zone 4 <FontAwesomeIcon icon={faInfoCircle}/></p> </div></button>
+                        <button onClick={() => handelClick(5)}><div className="Block Zone5 animate__animated animate__fadeInDown" style={{animationDelay: "2s"}}><p className="Rotate">Zone 5 <FontAwesomeIcon icon={faInfoCircle}/></p> </div></button>
                     </div>
                 </div>
                 <div className="Control">
-                    <div className="Module">
+                    <div className="Module animate__animated animate__fadeIn" >
                         <p>
                             <img
                                 className="img"
@@ -134,7 +135,7 @@ function GardenControl() {
                             Cường độ ánh sáng : {light.data}
                         </p>
                     </div>
-                    <div className="Module">
+                    <div className="Module animate__animated animate__fadeIn" style={{animationDelay: "0.2s"}}>
                         <p>
                             <img
                                 className="img"
@@ -145,7 +146,7 @@ function GardenControl() {
                             Nhiệt độ : {temp} độ C
                         </p>
                     </div>
-                    <div className="Module">
+                    <div className="Module animate__animated animate__fadeIn" style={{animationDelay: "0.4s"}}>
                         <p>
                             <img
                                 className="img"
@@ -156,7 +157,7 @@ function GardenControl() {
                             Độ ẩm đất: {moisture.data} %
                         </p>
                     </div>
-                    <div className="Module">
+                    <div className="Module animate__animated animate__fadeIn" style={{animationDelay: "0.6s"}}>
                         <p>
                             <img
                                 className="img"
