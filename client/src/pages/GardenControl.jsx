@@ -7,8 +7,11 @@ import lightImg from "../img/light.png";
 import temperatureImg from "../img/temperature.png";
 import moistureImg from "../img/moisture.png";
 import humidityImg from "../img/humidity.png";
+import { notification } from "antd";
 import { Button } from "antd";
-import { Progress } from 'antd';
+// import { Progress } from 'antd';
+import { SmileOutlined } from "@ant-design/icons";
+
 
 const io = require("socket.io-client");
 
@@ -20,6 +23,20 @@ const socket = io("http://localhost:3001", {
     },
 });
 
+
+const openNotification = (message, description, isOk) => {
+    let icon;
+    if (!isOk)
+        icon = <SmileOutlined rotate={180} style={{ color: "#eb2f96" }} />;
+    else icon = <SmileOutlined style={{ color: "#108ee9" }} />;
+
+    notification.open({
+        message,
+        description,
+        icon,
+    });
+};
+
 function GardenControl() {
 
     const [temp, setTemp] = useState(0);
@@ -27,17 +44,18 @@ function GardenControl() {
     const [light, setLight] = useState({ data: 0 });
     const [moisture, setMoisture] = useState({ data: 0 });
     const [zone, setZone] = useState(0);
-    const [progress, setProgress] = useState(false);
-    const [percent, setPercent] = useState(0);
+
 
     function handelClick(zoneId){
         setZone(zoneId)
     }
 
-    function handleLoading(){
-        setProgress(true);
-        console.log(progress)
-
+    function handleLoading(message){
+        openNotification(
+            "Thông báo",
+            message,
+            true
+        );
     }
 
     useEffect(() => {
@@ -149,18 +167,26 @@ function GardenControl() {
                             Độ ẩm không khí : {humidity} %
                         </p>
                     </div>    
-                    <div className="title">Zone : {zone}</div>
-                    <div className="Module">
-                         {zone}
-                    </div>   
-                    <div className="Module">
-                        <p>Mở mấy bơm</p>
-                        <Button onClick={()=>handleLoading()}>Click</Button>
-                    </div>   
-                    <div className="Module">
-                        <p>Đóng rèm</p>
-                        <Button onClick={()=>handleLoading()}>Click</Button>
-                    </div>     
+
+                    {
+                        zone === 0 ? "" : (
+                            <div>
+                                <div className="title">Zone : {zone}</div>
+                                <div className="Module">
+                                    {zone}
+                                </div>   
+                                <div className="Module">
+                                    <p>Hệ thống tưới</p>
+                                    <Button onClick={()=>handleLoading(`Hệ thống tưới của zone ${zone} đang được mở`)}>Click</Button>
+                                </div>   
+                                <div className="Module">
+                                    <p>Đóng rèm</p>
+                                    <Button onClick={()=>handleLoading(`Rèm của zone ${zone} đang được đóng`)}>Click</Button>
+                                </div>  
+                            </div>
+                        )
+                    }
+                       
                 </div>
                 
             </div>

@@ -9,6 +9,7 @@ import { addDays } from 'date-fns';
 import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css'; 
 import 'react-date-range/dist/theme/default.css';  
+import 'animate.css'
 
 
 // Data pattern for Pie Chart
@@ -122,7 +123,7 @@ function Statistic() {
 
             <div className="Inner">
                 <div className="ChartBlock">
-                    <div className="Chart">
+                    <div className="Chart animate__animated animate__fadeInRight animate__delay-1s">
                         <LineChart width={750} height={300} data={temp} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                 <Line type="monotone" dataKey="uv" stroke="#e3242b" />
                                 <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
@@ -132,7 +133,7 @@ function Statistic() {
                         <div className="title">Biểu độ nhiệt độ trung bình</div>
                     </div>
                     
-                    <div className="Chart">
+                    <div className="Chart animate__animated animate__fadeInRight animate__delay-2s">
                         <AreaChart
                                 width={750}
                                 height={300}
@@ -154,7 +155,7 @@ function Statistic() {
                         <div className="title">Biểu đồ độ ẩm đất trung bình</div>
                     </div>
 
-                    <div className="Chart">
+                    <div className="Chart animate__animated animate__fadeInRight animate__delay-3s">
                     <BarChart
                             width={750}
                             height={300}
@@ -178,7 +179,7 @@ function Statistic() {
                 </div>
 
                 <div className="">
-                    <div className="Datepicker">
+                    <div className="Datepicker animate__animated animate__fadeInUp">
                         <DateRange
                             onChange={item => handleSelectDate(item)}
                             months={1}
