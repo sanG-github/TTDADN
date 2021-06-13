@@ -69,7 +69,7 @@ const Account = (props) => {
             password : password
         }
         Axios.post(`http://localhost:3001/api/login`, account).then((response) => {
-            if (response.data.message)
+            if (response.data.code !== 200)
                 openNotification(
                     "Something happened!",
                     response.data.message,

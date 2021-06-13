@@ -18,7 +18,6 @@ import Record from "./pages/Record";
 import Logout from "./pages/Logout";
 import Account from "./pages/Account";
 import GardenControl from "./pages/GardenControl";
-
 import axios from "axios";
 import UserInfo from "./pages/UserInfo";
 
@@ -132,7 +131,7 @@ const SiderDemo = () => {
                             >
                                 <Switch>
                                     <Suspense fallback={<h1>....</h1>}>
-                                        <Route exact path="/">
+                                        <Route default exact path="/">
                                             <CurrentFigure />
                                         </Route>
                                         <Route exact path="/control-panel">

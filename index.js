@@ -550,7 +550,6 @@ app.post("/api/register", (req, res) => {
                 } else {
                     bcrypt.hash(password, saltRounds, (err, hash) => {
                         if (err) {
-                            console.log(err);
                             res.send({
                                 code: 404,
                                 message: "failed"
@@ -568,7 +567,11 @@ app.post("/api/register", (req, res) => {
                                         message: "failed"
                                     });
                                 }
-                                else res.send(result);
+                                else res.send({
+                                    ...result,
+                                    code: 200,
+                                    message: "succesful"
+                                });
                             }
                         );
                     });
@@ -577,8 +580,8 @@ app.post("/api/register", (req, res) => {
         );
     else res.send({ 
         code: 401,
-        message: "failed"
-        // message: "Password confirm doesnt match!" 
+        message: "Password confirm doesn't match!" 
+        
     });
 });
 
@@ -648,15 +651,17 @@ app.post("/api/login", (req, res) => {
                         if (response) {
                             req.session.token = "abc" + result[0].password;
                             // console.log(req.session.token);
+                            // res.sendStatus(200)
                             res.send({
+                                ...result,
                                 code: 200,
-                                message: "successful"
+                                message: "Successful"
                             });
                         } else {
                             res.send({
                                 code: 401,
-                                // message: "Wrong username/password combination!",
-                                message: "failed"
+                                message: "Wrong username/password combination!",
+                                // message: "failed"
                             });
                         }
                     }
@@ -664,8 +669,7 @@ app.post("/api/login", (req, res) => {
             } else {
                 res.send({ 
                     code: 402,
-                    // message: "User doesn't exist"
-                    message: "failed"
+                    message: "User doesn't exist"
                 });
             }
         }
