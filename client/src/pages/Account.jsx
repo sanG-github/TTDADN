@@ -36,12 +36,12 @@ const Account = (props) => {
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
         const password2 = document.getElementById("password2").value;
-
-        Axios.post(`http://localhost:3001/api/register`, {
-            username,
-            password,
-            password2,
-        }).then((response) => {
+        const account = {
+            username : username,
+            password : password,
+            password2 : password
+        }
+        Axios.post(`http://localhost:3001/api/register`, account).then((response) => {
             if (response.data.message)
                 openNotification(
                     "Something happened!",

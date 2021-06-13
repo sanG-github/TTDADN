@@ -516,12 +516,29 @@ app.get("/", (req, res) => {
 /**
  * @swagger
  * /api/register:
- *  get:
- *      description: GET all feeds of Adafruit IoT
+ *  post:
+ *      description: POST information for registering new account.
+ *      parameters:
+ *      - name: account
+ *        in: body
+ *        required: true
+ *        schema:     
+ *           type: object
+ *           properties:
+ *               username:
+ *                   type: string
+ *               password:
+ *                   type: string
+ *               password2:
+ *                   type: string
+ *           example:
+ *                username: quan0402
+ *                password: quan0402
+ *                password2: quan0402
  *      responses:
  *          200:
  *              description: Success
- */
+*/
 
 
 app.post("/api/register", (req, res) => {
