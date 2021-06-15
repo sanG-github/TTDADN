@@ -39,7 +39,8 @@ const reducer  = ( state = initState, action)=>{
             username : action.value
 
         };
-        default : break;
+        default :
+            return state;
     }
 }
 
