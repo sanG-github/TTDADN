@@ -88,6 +88,28 @@ app.get("/statistic/:type", (req, res) => {
   });
 });
 
+
+app.get("/record/:type", (req, res) => {
+  const type = req.params.type;
+  var sqlSelect = "";
+  if (req.query) {
+    var from = req.query.from.split(" ");
+    var to = req.query.to.split(" ");
+    var start = [from[1], from[2], from[3]].join(" ");
+    var end = [to[1], to[2], to[3]].join(" ");
+
+    sqlSelect = `SELECT * FROM DADN.${type} WHERE datetime >= str_to_date('${start}','%M %d %Y') AND datetime <= str_to_date('${end}','%M %d %Y') ORDER BY day(datetime) `;
+  } else {
+    sqlSelect = `SELECT * FROM DADN.${type}`;
+  }
+  database.query(sqlSelect, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    res.send(result);
+  });
+});
+
 /**
  * @swagger
  * /device:
@@ -123,16 +145,16 @@ app.get("/device", (req, res) => {
  *              description: Success
  */
 
-app.get("/record/:type", (req, res) => {
-  const type = req.params.type;
-  const sqlSelect = `SELECT * FROM DADN.${type}`;
-  database.query(sqlSelect, (err, result) => {
-    if (err) {
-      console.log(err);
-    }
-    res.send(result);
-  });
-});
+// app.get("/record/:type", (req, res) => {
+//   const type = req.params.type;
+//   const sqlSelect = `SELECT * FROM DADN.${type}`;
+//   database.query(sqlSelect, (err, result) => {
+//     if (err) {
+//       console.log(err);
+//     }
+//     res.send(result);
+//   });
+// });
 
 /**
  * @swagger

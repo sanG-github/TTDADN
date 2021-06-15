@@ -7,6 +7,7 @@ import { Select } from 'antd';
 import { Calendar } from 'react-date-range';
 import * as locales from 'react-date-range/dist/locale';
 import ErrorPage from './ErrorPage';
+import { addDays } from 'date-fns';
 
 const { Option } = Select;
 const { Column } = Table;
@@ -18,15 +19,13 @@ function Record() {
 
     const [data,setData] = useState([]);
     const [type,setType] = useState('device')
-    const [date, setDate] = useState(null);
+    const [date, setDate] = useState("");
 
     function handleDatepicker(item){
-        console.log(item)
         setDate(item)
     }
 
     function handleChange(value) {
-        console.log(`selected ${value}`);
         setType(value)
       }
       
@@ -38,11 +37,18 @@ function Record() {
             setStatusCode(0);
         })
 
-        axios.get(`http://localhost:3001/record/${type}`).then(response => {
-            console.log('alo')
-            setData(response.data);
-        })
-    },[type])
+        if(type === 'device' ){
+            axios.get(`http://localhost:3001/device`).then(response => {
+                setData(response.data);
+            })
+        }
+        else {
+            var endDate = addDays(date, 1)
+            axios.get(`http://localhost:3001/record/${type}?from=${date.toString()}&to=${endDate.toString()}`).then(response => {
+                setData(response.data);
+            })
+        }  
+    },[type,date])
 
     if(statusCode !== 200){
         return <ErrorPage />
