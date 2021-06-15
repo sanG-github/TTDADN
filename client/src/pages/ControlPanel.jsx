@@ -19,6 +19,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import 'animate.css'
+import ErrorPage from "./ErrorPage";
 // import Record from "./Record";
 const { Column } = Table;
 const { Option } = Select;
@@ -254,6 +255,7 @@ function ControlPanel() {
     const [constrains, setConstrains] = useState([]);
     const [open, setOpen] = useState(false);
     const [item, setItem] = useState({});
+    const [statusCode, setStatusCode] = useState(0);
    
     //Các function để UPDATE ràn buộc mới xuống database
     const handleClickOpen = (record) => {
@@ -307,6 +309,10 @@ function ControlPanel() {
     }
 
     useEffect(() => {
+        axios.get(`http://localhost:3001/`).then((response) => {
+            setStatusCode(response.data.code);
+        })
+
         axios.get(`http://localhost:3001/device`).then((response) => {
             setData(response.data);
         });
@@ -316,8 +322,6 @@ function ControlPanel() {
         });
 
     }, [open]);
-
-    
 
     // const changeFeedData = (checked) => {
 
@@ -336,7 +340,9 @@ function ControlPanel() {
     //     );
     // };
 
-    
+    if(statusCode !== 200){
+        return <ErrorPage />
+    }
 
     return (
         <div>

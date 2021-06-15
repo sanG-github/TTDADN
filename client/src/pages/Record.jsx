@@ -6,12 +6,15 @@ import { Table } from 'antd';
 import { Select } from 'antd';
 import { Calendar } from 'react-date-range';
 import * as locales from 'react-date-range/dist/locale';
+import ErrorPage from './ErrorPage';
 
 const { Option } = Select;
 const { Column } = Table;
 
 
 function Record() {
+
+    const [statusCode, setStatusCode] = useState(0);
 
     const [data,setData] = useState([]);
     const [type,setType] = useState('device')
@@ -28,12 +31,19 @@ function Record() {
       }
       
     useEffect(()=>{
+        axios.get(`http://localhost:3001/`).then((response) => {
+            setStatusCode(response.data.code);
+        })
+
         axios.get(`http://localhost:3001/record/${type}`).then(response => {
             console.log('alo')
             setData(response.data);
         })
     },[type])
 
+    if(statusCode !== 200){
+        return <ErrorPage />
+    }
 
     return (
         <div>

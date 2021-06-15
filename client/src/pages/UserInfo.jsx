@@ -4,9 +4,13 @@ import { useSelector } from "react-redux";
 function UserInfo() {
 
     const username = useSelector((state) => state.username);
+    
     return (
         <div>
-            User Info
+            <div className="title">User Infor</div>
+            <p>username</p>
+
+
         </div>
     )
 }

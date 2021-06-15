@@ -12,6 +12,7 @@ import { Button } from "antd";
 // import { Progress } from 'antd';
 import { SmileOutlined } from "@ant-design/icons";
 import 'animate.css'
+import ErrorPage from "./ErrorPage";
 
 
 const io = require("socket.io-client");
@@ -46,6 +47,7 @@ function GardenControl() {
     const [moisture, setMoisture] = useState({ data: 0 });
     const [zone, setZone] = useState(0);
 
+    const [statusCode, setStatusCode] = useState(0);
 
     function handelClick(zoneId){
         setZone(zoneId)
@@ -60,6 +62,11 @@ function GardenControl() {
     }
 
     useEffect(() => {
+
+        axios.get(`http://localhost:3001/`).then((response) => {
+            setStatusCode(response.data.code);
+        })
+
         axios.get("http://localhost:3001/currentFigure").then((res) => {
             setTemp(res.data.temp);
             setHumidity(res.data.humidity);
@@ -105,6 +112,10 @@ function GardenControl() {
             }
         });
     }, []);
+
+    if(statusCode !== 200){
+        return <ErrorPage />
+    }
 
     return (
         <div>

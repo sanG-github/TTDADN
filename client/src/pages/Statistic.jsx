@@ -10,6 +10,7 @@ import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css'; 
 import 'react-date-range/dist/theme/default.css';  
 import 'animate.css'
+import ErrorPage from './ErrorPage';
 
 
 // Data pattern for Pie Chart
@@ -59,6 +60,14 @@ function Statistic() {
           key: 'selection'
         }
       ]);
+
+    const [statusCode, setStatusCode] = useState(0);
+
+    useEffect(() => {
+        axios.get(`http://localhost:3001/`).then((response) => {
+            setStatusCode(response.data.code);
+        })
+    },[])
 
     useEffect(() => {
         var endDate = addDays(state[0].endDate, 1)
@@ -113,9 +122,12 @@ function Statistic() {
         if(state[0].startDate){
             console.log(state[0].startDate.getDate().toString())
         }
-        
     }
 
+    if(statusCode !== 200){
+        return <ErrorPage />
+    }
+    
     return (
         <div className="Statistic">
 

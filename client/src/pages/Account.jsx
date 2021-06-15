@@ -5,7 +5,7 @@ import { SmileOutlined } from "@ant-design/icons";
 import Axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {faLeaf} from "@fortawesome/free-solid-svg-icons";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch} from "react-redux";
 import {
     updateUsername
 }
@@ -39,7 +39,7 @@ const Account = (props) => {
         const account = {
             username : username,
             password : password,
-            password2 : password
+            password2 : password2
         }
         Axios.post(`http://localhost:3001/api/register`, account).then((response) => {
             if (response.data.message)
@@ -68,13 +68,14 @@ const Account = (props) => {
             username : username,
             password : password
         }
-        Axios.post(`http://localhost:3001/api/login`, account).then((response) => {
+        Axios.post(`http://localhost:3001/api/login`, account)
+        .then((response) => {
             if (response.data.code !== 200)
                 openNotification(
                     "Something happened!",
                     response.data.message,
                     false
-                );
+            );
             else {
                 openNotification(
                     "Login successfully!",
@@ -85,6 +86,9 @@ const Account = (props) => {
                 props.setLoggedIn(true);
                 
             }
+        })
+        .catch((err) => {
+            openNotification("Something happened!","Lost connection to server.",false)
         });
     };
 

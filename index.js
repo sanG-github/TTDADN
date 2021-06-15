@@ -503,6 +503,7 @@ app.get("/getAllFeeds", (req, res) => {
 });
 
 app.get("/", (req, res) => {
+  res.send({code: 201, message:"successful"})
   console.log("SERVER connected");
 });
 

@@ -10,6 +10,7 @@ import humidityImg from "../img/humidity.png";
 import { notification } from "antd";
 import { SmileOutlined } from "@ant-design/icons";
 import 'animate.css'
+import ErrorPage from "./ErrorPage";
 
 
 const io = require("socket.io-client");
@@ -44,18 +45,32 @@ function CurrentFigure() {
     const [light, setLight] = useState({ data: 0 });
     const [moisture, setMoisture] = useState({ data: 0 });
 
+    const [statusCode, setStatusCode] = useState(0);
+
     useEffect(() => {
+        axios.get(`http://localhost:3001/`).then((response) => {
+            setStatusCode(response.data.code);
+        })
+        .catch((err) => {
+            openNotification("Something happened!","Lost connection to server.",false)
+        })
+
         axios.get(`http://localhost:3001/constrain`).then((response) => {
             setConstrains(response.data);
-            console.log(response.data)
-        });
+        })
+        .catch((err) => {
+            openNotification("Something happened!","Lost connection to server.",false)
+        })
 
         axios.get("http://localhost:3001/currentFigure").then((res) => {
             setTemp(res.data.temp);
             setHumidity(res.data.humidity);
             setLight({ data: res.data.light });
             setMoisture({ data: res.data.moisture });
-        });
+        })
+        .catch((err) => {
+            openNotification("Something happened!","Lost connection to server.",false)
+        })
 
         socket.on("feedFromServer2", (data) => {
             try {
@@ -70,7 +85,7 @@ function CurrentFigure() {
                         break;
                 }
             } catch (err) {
-                console.log(err);
+                openNotification("Something happened!","Lost connection to server.",false)
             }
         });
 
@@ -91,12 +106,20 @@ function CurrentFigure() {
                         break;
                 }
             } catch (err) {
-                console.log(err);
+                openNotification("Something happened!","Lost connection to server.",false)
             }
         });
     }, []);
 
+    if(statusCode !== 200){
         return (
+            <ErrorPage />
+        )
+    }
+
+        return (
+
+
             <div className="Current-Figure">
                 <div className="title">Thông số vườn cà chua hiện tại</div>
                 <div className="Banner">
