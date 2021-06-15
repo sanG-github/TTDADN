@@ -7,8 +7,8 @@ import lightImg from "../img/light.png";
 import temperatureImg from "../img/temperature.png";
 import moistureImg from "../img/moisture.png";
 import humidityImg from "../img/humidity.png";
-import { notification } from "antd";
-import { SmileOutlined } from "@ant-design/icons";
+// import { notification } from "antd";
+// import { SmileOutlined } from "@ant-design/icons";
 import 'animate.css'
 import ErrorPage from "./ErrorPage";
 
@@ -23,18 +23,18 @@ const socket = io("http://localhost:3001", {
     },
 });
 
-const openNotification = (message, description, isOk) => {
-    let icon;
-    if (!isOk)
-        icon = <SmileOutlined rotate={180} style={{ color: "#eb2f96" }} />;
-    else icon = <SmileOutlined style={{ color: "#108ee9" }} />;
+// const openNotification = (message, description, isOk) => {
+//     let icon;
+//     if (!isOk)
+//         icon = <SmileOutlined rotate={180} style={{ color: "#eb2f96" }} />;
+//     else icon = <SmileOutlined style={{ color: "#108ee9" }} />;
 
-    notification.open({
-        message,
-        description,
-        icon,
-    });
-};
+//     notification.open({
+//         message,
+//         description,
+//         icon,
+//     });
+// };
 
 // Mới nhất : Quân viết cho phần ràn buộc
 
@@ -45,21 +45,21 @@ function CurrentFigure() {
     const [light, setLight] = useState({ data: 0 });
     const [moisture, setMoisture] = useState({ data: 0 });
 
-    const [statusCode, setStatusCode] = useState(0);
+    const [statusCode, setStatusCode] = useState(200);
 
     useEffect(() => {
         axios.get(`http://localhost:3001/`).then((response) => {
             setStatusCode(response.data.code);
         })
         .catch((err) => {
-            openNotification("Something happened!","Lost connection to server.",false)
+            setStatusCode(0);
         })
 
         axios.get(`http://localhost:3001/constrain`).then((response) => {
             setConstrains(response.data);
         })
         .catch((err) => {
-            openNotification("Something happened!","Lost connection to server.",false)
+            // openNotification("Something happened!","Lost connection to server.",false)
         })
 
         axios.get("http://localhost:3001/currentFigure").then((res) => {
@@ -69,7 +69,7 @@ function CurrentFigure() {
             setMoisture({ data: res.data.moisture });
         })
         .catch((err) => {
-            openNotification("Something happened!","Lost connection to server.",false)
+            // openNotification("Something happened!","Lost connection to server.",false)
         })
 
         socket.on("feedFromServer2", (data) => {
@@ -85,7 +85,7 @@ function CurrentFigure() {
                         break;
                 }
             } catch (err) {
-                openNotification("Something happened!","Lost connection to server.",false)
+                // openNotification("Something happened!","Lost connection to server.",false)
             }
         });
 
@@ -106,7 +106,7 @@ function CurrentFigure() {
                         break;
                 }
             } catch (err) {
-                openNotification("Something happened!","Lost connection to server.",false)
+                // openNotification("Something happened!","Lost connection to server.",false)
             }
         });
     }, []);

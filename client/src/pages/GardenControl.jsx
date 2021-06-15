@@ -41,13 +41,13 @@ const openNotification = (message, description, isOk) => {
 
 function GardenControl() {
 
-    const [temp, setTemp] = useState(0);
+    const [temp, setTemp] = useState(200);
     const [humidity, setHumidity] = useState(0);
     const [light, setLight] = useState({ data: 0 });
     const [moisture, setMoisture] = useState({ data: 0 });
     const [zone, setZone] = useState(0);
 
-    const [statusCode, setStatusCode] = useState(0);
+    const [statusCode, setStatusCode] = useState(200);
 
     function handelClick(zoneId){
         setZone(zoneId)
@@ -65,6 +65,9 @@ function GardenControl() {
 
         axios.get(`http://localhost:3001/`).then((response) => {
             setStatusCode(response.data.code);
+        })
+        .catch((err) => {
+            setStatusCode(0);
         })
 
         axios.get("http://localhost:3001/currentFigure").then((res) => {

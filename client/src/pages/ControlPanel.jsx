@@ -255,7 +255,7 @@ function ControlPanel() {
     const [constrains, setConstrains] = useState([]);
     const [open, setOpen] = useState(false);
     const [item, setItem] = useState({});
-    const [statusCode, setStatusCode] = useState(0);
+    const [statusCode, setStatusCode] = useState(200);
    
     //Các function để UPDATE ràn buộc mới xuống database
     const handleClickOpen = (record) => {
@@ -311,6 +311,9 @@ function ControlPanel() {
     useEffect(() => {
         axios.get(`http://localhost:3001/`).then((response) => {
             setStatusCode(response.data.code);
+        })
+        .catch((err) => {
+            setStatusCode(0);
         })
 
         axios.get(`http://localhost:3001/device`).then((response) => {
@@ -369,7 +372,7 @@ function ControlPanel() {
                                     return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Speaker datum={datum} /></div>
                       
                                 default:
-                                    break;
+                                    return <div></div>
                             }
                         })}
             </div>

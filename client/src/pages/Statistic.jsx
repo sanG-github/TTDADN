@@ -61,11 +61,14 @@ function Statistic() {
         }
       ]);
 
-    const [statusCode, setStatusCode] = useState(0);
+    const [statusCode, setStatusCode] = useState(200);
 
     useEffect(() => {
         axios.get(`http://localhost:3001/`).then((response) => {
             setStatusCode(response.data.code);
+        })
+        .catch((err) => {
+            setStatusCode(0);
         })
     },[])
 
@@ -127,7 +130,7 @@ function Statistic() {
     if(statusCode !== 200){
         return <ErrorPage />
     }
-    
+
     return (
         <div className="Statistic">
 

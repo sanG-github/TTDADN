@@ -142,7 +142,7 @@ const Account = (props) => {
                             <i />
                             <a
                                 onClick={() => setCurentView("PWReset")}
-                                href="#"
+                                href="/"
                             >
                                 Forgot Password?
                             </a>

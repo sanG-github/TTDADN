@@ -8,7 +8,7 @@ function UserInfo() {
     return (
         <div>
             <div className="title">User Infor</div>
-            <p>username</p>
+            <p>{username}</p>
 
 
         </div>
