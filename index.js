@@ -88,6 +88,31 @@ app.get("/statistic/:type", (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /record/{type} :
+ *  get:
+ *      description: GET all [TYPE] records from database.
+ *      parameters:
+ *      - name: type
+ *        in : path
+ *        description: light | temperature | moisture | humidity
+ *        type: String
+ *      responses:
+ *          200:
+ *              description: Success
+ */
+
+// app.get("/record/:type", (req, res) => {
+//   const type = req.params.type;
+//   const sqlSelect = `SELECT * FROM DADN.${type}`;
+//   database.query(sqlSelect, (err, result) => {
+//     if (err) {
+//       console.log(err);
+//     }
+//     res.send(result);
+//   });
+// });
 
 app.get("/record/:type", (req, res) => {
   const type = req.params.type;
@@ -130,31 +155,35 @@ app.get("/device", (req, res) => {
   });
 });
 
-/**
- * @swagger
- * /record/{type} :
- *  get:
- *      description: GET all [TYPE] records from database.
- *      parameters:
- *      - name: type
- *        in : path
- *        description: light | temperature | moisture | humidity
- *        type: String
- *      responses:
- *          200:
- *              description: Success
- */
 
-// app.get("/record/:type", (req, res) => {
-//   const type = req.params.type;
-//   const sqlSelect = `SELECT * FROM DADN.${type}`;
-//   database.query(sqlSelect, (err, result) => {
-//     if (err) {
-//       console.log(err);
-//     }
-//     res.send(result);
-//   });
-// });
+app.post("/addNewDevice", (req, res) => {
+  console.log(req.body);
+  const values = {
+    name : req.body.name,
+    type : req.body.type,
+    feed : req.body.feed,
+    feedName : req.body.feedName,
+    zoneId : parseInt(req.body.zoneId)
+  };
+  const sqlUpdate = `INSERT INTO DADN.device (name, type, status, brand,feedName,feed,zoneId) VALUES  ('${values.name}','${values.type}','đang hoạt động','ChipFC','${values.feedName}','${values.feed}',${values.zoneId})`;
+  console.log(sqlUpdate);
+  database.query(sqlUpdate, (err, result) => {
+    if (err) {
+      res.send({
+        statusCode : 401,
+        message : err.sqlMessage
+      })
+    }
+    else {
+      console.log("success");
+      res.send({
+        statusCode : 200,
+        message : "Succesfull"
+      })
+    }
+  });
+});
+
 
 /**
  * @swagger

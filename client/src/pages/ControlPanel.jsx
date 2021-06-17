@@ -3,7 +3,7 @@ import "antd/dist/antd.css";
 import "../styles/ControlPanel.css";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faEdit} from "@fortawesome/free-solid-svg-icons";
+import {faEdit,faPlus} from "@fortawesome/free-solid-svg-icons";
 import { Card } from "antd";
 import { Switch } from "antd";
 import { io } from "socket.io-client";
@@ -20,6 +20,8 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import 'animate.css'
 import ErrorPage from "./ErrorPage";
+import { SmileOutlined } from "@ant-design/icons";
+import { notification } from "antd";
 // import Record from "./Record";
 const { Column } = Table;
 const { Option } = Select;
@@ -33,6 +35,19 @@ const socket = io("http://localhost:3001", {
         "my-custom-header": "1234", // WARN: this will be ignored in a browser
     },
 });
+
+const openNotification = (message, description, isOk) => {
+    let icon;
+    if (!isOk)
+        icon = <SmileOutlined rotate={180} style={{ color: "#eb2f96" }} />;
+    else icon = <SmileOutlined style={{ color: "#108ee9" }} />;
+
+    notification.open({
+        message,
+        description,
+        icon,
+    });
+};
 
 function publishData(datum, value) {
     var server = "";
@@ -254,14 +269,21 @@ function ControlPanel() {
     const [data, setData] = useState([]);
     const [constrains, setConstrains] = useState([]);
     const [open, setOpen] = useState(false);
+    const [openAdd, setOpenAdd] = useState(false);
     const [item, setItem] = useState({});
     const [statusCode, setStatusCode] = useState(200);
+
+    let name, type, feedName, feed, zoneId;
    
     //Các function để UPDATE ràn buộc mới xuống database
     const handleClickOpen = (record) => {
         console.log("open")
         setItem(record)
         setOpen(true);
+    };
+
+    const handleClick = () => {
+        setOpenAdd(!openAdd);
     };
 
     const handleClose = () => {
@@ -274,11 +296,69 @@ function ControlPanel() {
         axios.post("http://localhost:3001/setConstrain", item)
         .then((res) => {
             if (res.status === 200) {
-                console.log("success");
+                openNotification(
+                    "Cập nhật ràng buộc thông số mới",
+                    `Successful`,
+                    true
+                );
+            }
+            else {
+                openNotification(
+                    "Đã có lỗi xảy!",
+                    `Fail`,
+                    false
+                );
             }
         })
         .catch((err) => {
-            console.log("fail");
+            openNotification(
+                "Đã có lỗi xảy!",
+                `Fail`,
+                false
+            );
+        });
+        setTimeout ( handleClose,1000);
+        
+        
+    };
+
+    const handleSubmitNewDevice = () => {
+
+        const newDevice = {
+            name : name,
+            type : type,
+            feed : feed,
+            feedName : feedName,
+            zoneId : zoneId
+        }
+
+        console.log(newDevice);
+
+        axios.post("http://localhost:3001/addNewDevice", newDevice)
+        .then((res) => {
+            if (res.data.statusCode === 200) {
+                console.log("success")
+                openNotification(
+                    "Thêm thiết bị mới thành công",
+                    `${res.data.message}`,
+                    true
+                );
+            }
+            else {
+                console.log("fail")
+                openNotification(
+                    "Đã có lỗi xảy!",
+                    `${res.data.message}`,
+                    false
+                );
+            }
+        })
+        .catch((err) => {
+            openNotification(
+                "Đã có lỗi xảy!",
+                ``,
+                false
+            );
         });
         setTimeout ( handleClose,1000);
         
@@ -306,6 +386,18 @@ function ControlPanel() {
             }
         )
 
+    }
+
+    const handleChange = (e,typeChange)=>{
+        switch(typeChange){
+            case 'name': name = e.target.value; break;
+            case 'type': type = e.target.value; break;
+            case 'feedName': feedName = e.target.value; break;
+            case 'feed': feed = e.target.value; break;
+            case 'zone': zoneId = e.target.value; break;
+            default:
+                break;
+        }
     }
 
     useEffect(() => {
@@ -348,8 +440,12 @@ function ControlPanel() {
     }
 
     return (
-        <div>
+        <div className="ControlPanel">
             <div className="title">Bảng điều khiển thiết bị</div>
+            <div className="ControlPanel__Button">
+                Thêm thiết bị mới :
+                <Button style={{margin: "0 10px"}} onClick={()=>handleClick()}><FontAwesomeIcon icon={faPlus}/></Button>
+            </div>
             <div className="Device-block">
                 {data &&
                     data
@@ -433,6 +529,70 @@ function ControlPanel() {
                     Cancel
                 </Button>
                 <Button onClick={handleSubmit} color="primary">
+                    Thay đổi
+                </Button>
+                </DialogActions>
+            </Dialog>
+
+
+            <Dialog open={openAdd} onClose={handleClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Thêm thiết bị mới</DialogTitle>
+                <DialogContent>
+                <DialogContentText>
+                    Nhập thông số của thiết bị mới.
+                </DialogContentText>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="name"
+                    label="Tên thiết bị"
+                    type="text"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChange(e,'name')}
+                />
+                <TextField
+                    margin="dense"
+                    id="name"
+                    label="Loại thiết bị"
+                    type="text"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChange(e,'type')}
+                />
+                <TextField
+                    margin="dense"
+                    id="name"
+                    label="Tên Feed của thiết bị"
+                    type="text"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChange(e,'feedName')}
+                />
+                <TextField
+                    margin="dense"
+                    id="name"
+                    label="Tên Feed của thiết bị ở trên Adafruit"
+                    type="text"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChange(e,'feed')}
+                />
+                <TextField
+                    margin="dense"
+                    id="name"
+                    label="Zone ID"
+                    type="number"
+                    fullWidth
+                    style={{margin: "10px 0px"}}
+                    onChange={(e) => handleChange(e,'zone')}
+                />
+                </DialogContent>
+                <DialogActions>
+                <Button onClick={()=>handleClick()} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={()=>handleSubmitNewDevice()} color="primary">
                     Thay đổi
                 </Button>
                 </DialogActions>
