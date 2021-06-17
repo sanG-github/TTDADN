@@ -155,6 +155,38 @@ app.get("/device", (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /addNewDevice:
+ *  post:
+ *      description: POST new device.
+ *      parameters:
+ *      - name: item
+ *        in: body
+ *        required: true
+ *        schema:
+ *           type: object
+ *           properties:
+ *               name:
+ *                   type: string
+ *               type:
+ *                   type: string
+ *               feedName:
+ *                   type: string
+ *               feed:
+ *                   type: string
+ *               zoneId:
+ *                   type: integer
+ *           example:
+ *                name : quan
+ *                type : light
+ *                feedName : LIGHT
+ *                feed : bk-iot-light
+ *                zoneId : 1
+ *      responses:
+ *          200:
+ *              description: Success
+ */
 
 app.post("/addNewDevice", (req, res) => {
   console.log(req.body);
