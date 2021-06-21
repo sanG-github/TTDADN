@@ -77,7 +77,7 @@ function Statistic() {
         axios.get(`http://localhost:3001/statistic/temperature?from=${state[0].startDate.toString()}&to=${endDate.toString()}`).then((response) => {
             console.log(response.data);
             var arr = [];
-            response.data.map((datum) => {
+            response.data.forEach((datum) => {
                 arr.push({
                     name : `Ngày ${datum.date}`,
                     uv : datum.record,
@@ -93,7 +93,7 @@ function Statistic() {
         axios.get(`http://localhost:3001/statistic/moisture?from=${state[0].startDate.toString()}&to=${endDate.toString()}`).then((response) => {
             console.log(response.data);
             var arr = [];
-            response.data.map(datum => {
+            response.data.forEach(datum => {
                 arr.push({
                     name : `Ngày ${datum.date}`,
                     uv : datum.record,
@@ -109,7 +109,7 @@ function Statistic() {
         axios.get(`http://localhost:3001/statistic/humidity?from=${state[0].startDate.toString()}&to=${endDate.toString()}`).then((response) => {
             console.log(response.data);
             var arr = [];
-            response.data.map(datum => {
+            response.data.forEach(datum => {
                 arr.push({
                     name : `Ngày ${datum.date}`,
                     uv : datum.record,
@@ -204,17 +204,9 @@ function Statistic() {
                     </div>
                 </div>
             </div>
-
-            
-            
-
             {/* <div className="PieChart">
                 <Doughnut data={data}/>
             </div> */}
-
-            
-            
-            
         </div>
     )
 }

@@ -77,11 +77,12 @@ button {
     margin: 0 0;
 }
 
-.Control {
-
-}
-
 .Module {
+    display:flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items:center;
+
     margin: 20px auto;
     width: 90%;
     padding: 20px 20px;

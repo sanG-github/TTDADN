@@ -68,7 +68,7 @@ const SiderDemo = () => {
                                 <Menu.Item
                                     key="4"
                                 >
-                                    <Link to="/user">Thông tin người dùng</Link>
+                                    <Link to="/user">Đổi mật khẩu</Link>
                                 </Menu.Item>
                                 <Menu.Item
                                     key="5"

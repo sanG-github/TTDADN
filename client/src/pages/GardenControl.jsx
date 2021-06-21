@@ -9,11 +9,13 @@ import moistureImg from "../img/moisture.png";
 import humidityImg from "../img/humidity.png";
 import { notification } from "antd";
 import { Button } from "antd";
-// import { Progress } from 'antd';
 import { SmileOutlined } from "@ant-design/icons";
 import 'animate.css'
 import ErrorPage from "./ErrorPage";
-
+import { makeStyles } from '@material-ui/core/styles';
+import TextField from '@material-ui/core/TextField';
+import Switch from '@material-ui/core/Switch';
+import { CountdownCircleTimer } from 'react-countdown-circle-timer'
 
 const io = require("socket.io-client");
 
@@ -25,6 +27,51 @@ const socket = io("http://localhost:3001", {
     },
 });
 
+function publishData(type,zoneId,value) {
+
+    let deviceList = [];
+
+    let feedName = type === "water" ? "RELAY" : "DRV_PWM"
+    console.log(type,zoneId)
+
+    axios.get(`http://localhost:3001/device`).then((response) => {
+        response.data.forEach((device) => {
+            if(device.zoneId === zoneId && device.feedName === feedName){
+                deviceList.push(device)
+            }
+        })
+    })
+    .then(()=>{
+        console.log(deviceList);
+        var server = "";
+
+        if (type === 'water') {
+            server = "CSE_BBC1";
+        } else {
+            server = "CSE_BBC";
+        }
+
+        deviceList.forEach((datum)=>{
+            socket.emit(
+                "changeFeedData",
+                `{
+                "topic":"${server}/feeds/${datum.feed}",
+                "message":{
+                    "id":"${datum.id}",
+                    "name":"${datum.feedName}",
+                    "data":"${value}",
+                    "unit":"${datum.unit === undefined ? "" : datum.unit}"
+                }
+            }`
+            );
+        })    
+    })
+}
+
+function formatTime(timeString){
+    const time = timeString.split(':');
+    return parseInt(time[0])*60+parseInt(time[1]);
+}
 
 const openNotification = (message, description, isOk) => {
     let icon;
@@ -41,28 +88,103 @@ const openNotification = (message, description, isOk) => {
 
 function GardenControl() {
 
+    const useStyles = makeStyles((theme) => ({
+        container: {
+          display: 'flex',
+          flexWrap: 'wrap',
+        },
+        textField: {
+          marginLeft: theme.spacing(1),
+          marginRight: theme.spacing(1),
+          width: 120,
+        },
+      }));
+
+    const classes = useStyles();
+
     const [temp, setTemp] = useState(200);
     const [humidity, setHumidity] = useState(0);
     const [light, setLight] = useState({ data: 0 });
     const [moisture, setMoisture] = useState({ data: 0 });
     const [zone, setZone] = useState(0);
-
     const [statusCode, setStatusCode] = useState(200);
+
+    // điều khiển rèm và hệ thống tưới
+    const [openState, setOpenState] = useState(true)
+    const [autoWatering, setAutoWatering] = useState(false)
+    const [waterProcessing, setWaterProcessing] = useState(false)
+    const [curtainProcessing, setCurtainProcessing] = useState(false)
+
+    const [timeRange,setTimeRange] = useState("15:00")
 
     function handelClick(zoneId){
         setZone(zoneId)
     }
 
-    function handleLoading(message){
+    function handleCurtainLoading(message){
         openNotification(
             "Thông báo",
             message,
             true
         );
+        publishData("curtain",zone,openState === true ? 255 : -255)
+       
+        setCurtainProcessing(true);
+        setTimeout(()=>{
+            openNotification(
+                "Thông báo",
+                `Rèm đã được ${openState === true ? "đóng" : "mở"}`,
+                true
+            );
+            publishData("curtain",zone,0)
+            setCurtainProcessing(false);
+            setOpenState(!openState);
+        },5000)
+        
+    }
+
+    function handleSwitchChange(event){
+        setAutoWatering(!autoWatering)
+    };
+
+    function handleTimepickerChange(e){
+        setTimeRange(e.target.value)   
+    }
+
+    function handleWaterLoading(){
+        if(waterProcessing){
+            openNotification(
+                "Thông báo",
+                `Đã tắt hệ thống tưới nước.`,
+                true
+            );
+            publishData("water",zone,0)
+            setWaterProcessing(false)
+        }
+        else {
+            publishData("water",zone,1)
+            setWaterProcessing(true)
+            openNotification(
+                "Thông báo",
+                `Đã bật hệ thống tưới nước.`,
+                true
+            );
+        }
+    }
+    
+
+    function handleCountdownCircle(){
+        openNotification(
+            "Thông báo",
+            `Đã tắt hệ thống tưới nước.`,
+            true
+        );
+        publishData("water",zone,0)
+        setWaterProcessing(false)
+        return [false,0]
     }
 
     useEffect(() => {
-
         axios.get(`http://localhost:3001/`).then((response) => {
             setStatusCode(response.data.code);
         })
@@ -118,6 +240,12 @@ function GardenControl() {
 
     if(statusCode !== 200){
         return <ErrorPage />
+    }
+
+    function format(length){
+        const minutes = `0${Math.floor(length/60).toString()}`.slice(-2);
+        const seconds = `0${(length%60).toString()}`.slice(-2);
+        return `${minutes}:${seconds}`
     }
 
     return (
@@ -188,25 +316,65 @@ function GardenControl() {
                             <div>
                                 <div className="title">Zone : {zone}</div>
                                 <div className="Module">
-                                    {zone}
-                                </div>   
-                                <div className="Module">
                                     <p>Hệ thống tưới</p>
-                                    <Button onClick={()=>handleLoading(`Hệ thống tưới của zone ${zone} đang được mở`)}>Click</Button>
+                                    <Switch
+                                        checked={autoWatering}
+                                        onChange={handleSwitchChange}
+                                        color="primary"
+                                        name="autoWatering"
+                                        inputProps={{ 'aria-label': 'primary checkbox' }}
+                                    />
+                                    <Button onClick={()=>handleWaterLoading(`Hệ thống tưới của zone ${zone} đang được`)}>{waterProcessing === false ? "Mở" : "Tắt"}</Button>
                                 </div>   
+                                
+                                {autoWatering === true ? 
                                 <div className="Module">
-                                    <p>Đóng rèm</p>
-                                    <Button onClick={()=>handleLoading(`Rèm của zone ${zone} đang được đóng`)}>Click</Button>
+                                    <form className={classes.container} noValidate>
+                                    <TextField
+                                        id="time"
+                                        label="Thời gian tưới"
+                                        type="time"
+                                        defaultValue="15:00"
+                                        className={classes.textField}
+                                        InputLabelProps={{
+                                        shrink: true,
+                                        }}
+                                        inputProps={{
+                                        step: 60, // 5 min
+                                        }}
+                                        onChange={handleTimepickerChange}
+                                    />
+                                    </form>
+                                    {
+                                        waterProcessing === true ?
+                                        <CountdownCircleTimer
+                                            isPlaying={waterProcessing}
+                                            duration={formatTime(timeRange)}
+                                            colors={[
+                                            ['#004777', 0.33],
+                                            ['#F7B801', 0.33],
+                                            ['#A30000', 0.33],
+                                            ]}
+                                            onComplete={handleCountdownCircle}
+                                        >
+                                            {({ remainingTime }) => format(remainingTime)}
+                                        </CountdownCircleTimer> 
+                                        : ""
+                                    }
+                                        
+                                </div>
+                                :
+                                ""
+                                }
+                                <div className="Module">
+                                    <p>{openState === false ? "Mở" : "Đóng"} rèm</p>
+                                    <Button onClick={()=>handleCurtainLoading(`Rèm của zone ${zone} đang được ${openState === true ? "đóng" : "mở"}`)} disabled={curtainProcessing === false ? false : true}>{openState === false ? "Mở" : "Đóng"}</Button>
                                 </div>  
                             </div>
                         )
                     }
-                       
                 </div>
-                
             </div>
-            
-
         </div>
     )
 }
