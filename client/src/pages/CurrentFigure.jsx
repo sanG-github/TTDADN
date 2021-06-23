@@ -48,18 +48,14 @@ function CurrentFigure() {
     const [statusCode, setStatusCode] = useState(200);
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/`).then((response) => {
-            setStatusCode(response.data.code);
-        })
-        .catch((err) => {
-            setStatusCode(0);
-        })
 
         axios.get(`http://localhost:3001/constrain`).then((response) => {
             setConstrains(response.data);
+            setStatusCode(200)
         })
         .catch((err) => {
             // openNotification("Something happened!","Lost connection to server.",false)
+            setStatusCode(0);
         })
 
         axios.get("http://localhost:3001/currentFigure").then((res) => {
@@ -67,9 +63,11 @@ function CurrentFigure() {
             setHumidity(res.data.humidity);
             setLight({ data: res.data.light });
             setMoisture({ data: res.data.moisture });
+            setStatusCode(200)
         })
         .catch((err) => {
             // openNotification("Something happened!","Lost connection to server.",false)
+            setStatusCode(0);
         })
 
         socket.on("feedFromServer2", (data) => {
@@ -84,8 +82,10 @@ function CurrentFigure() {
                     default:
                         break;
                 }
+                setStatusCode(200);
             } catch (err) {
                 // openNotification("Something happened!","Lost connection to server.",false)
+                setStatusCode(0);
             }
         });
 
@@ -105,7 +105,9 @@ function CurrentFigure() {
                     default:
                         break;
                 }
+                setStatusCode(200);
             } catch (err) {
+                setStatusCode(0);
                 // openNotification("Something happened!","Lost connection to server.",false)
             }
         });
