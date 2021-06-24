@@ -385,7 +385,6 @@ function ControlPanel() {
                 lower_bound : parseInt(e.target.value)
             }
         )
-
     }
 
     const handleChange = (e,typeChange)=>{
@@ -401,20 +400,17 @@ function ControlPanel() {
     }
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/`).then((response) => {
-            setStatusCode(response.data.code);
-        })
-        .catch((err) => {
-            setStatusCode(0);
-        })
-
         axios.get(`http://localhost:3001/device`).then((response) => {
             setData(response.data);
-        });
+            setStatusCode(200)
+        })
+        .catch(err => setStatusCode(0));
 
         axios.get(`http://localhost:3001/constrain`).then((response) => {
             setConstrains(response.data);
-        });
+            setStatusCode(200)
+        })
+        .catch(err => setStatusCode(0));
 
     }, [open]);
 

@@ -64,15 +64,6 @@ function Statistic() {
     const [statusCode, setStatusCode] = useState(200);
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/`).then((response) => {
-            setStatusCode(response.data.code);
-        })
-        .catch((err) => {
-            setStatusCode(0);
-        })
-    },[])
-
-    useEffect(() => {
         var endDate = addDays(state[0].endDate, 1)
         axios.get(`http://localhost:3001/statistic/temperature?from=${state[0].startDate.toString()}&to=${endDate.toString()}`).then((response) => {
             console.log(response.data);
@@ -85,6 +76,10 @@ function Statistic() {
                 })
             })
             setTemp(arr)
+            setStatusCode(200);
+        })
+        .catch((err) => {
+            setStatusCode(0);
         })
     },[state]);
 
@@ -101,6 +96,10 @@ function Statistic() {
                 })
             })
             setMoisture(arr)
+            setStatusCode(200);
+        })
+        .catch((err) => {
+            setStatusCode(0);
         })
     },[state]);
 
@@ -117,6 +116,10 @@ function Statistic() {
                 })
             })
             setHumidity(arr)
+            setStatusCode(200);
+        })
+        .catch((err) => {
+            setStatusCode(0);
         })
     },[state]);
 

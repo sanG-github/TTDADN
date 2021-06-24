@@ -30,22 +30,23 @@ function Record() {
       }
       
     useEffect(()=>{
-        axios.get(`http://localhost:3001/`).then((response) => {
-            setStatusCode(response.data.code);
-        })
-        .catch((err) => {
-            setStatusCode(0);
-        })
-
         if(type === 'device' ){
             axios.get(`http://localhost:3001/device`).then(response => {
                 setData(response.data);
+                setStatusCode(200);
+            })
+            .catch((err) => {
+                setStatusCode(0);
             })
         }
         else {
             var endDate = addDays(date, 1)
             axios.get(`http://localhost:3001/record/${type}?from=${date.toString()}&to=${endDate.toString()}`).then(response => {
                 setData(response.data);
+                setStatusCode(200);
+            })
+            .catch((err) => {
+                setStatusCode(0);
             })
         }  
     },[type,date])

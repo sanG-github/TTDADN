@@ -185,18 +185,16 @@ function GardenControl() {
     }
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/`).then((response) => {
-            setStatusCode(response.data.code);
-        })
-        .catch((err) => {
-            setStatusCode(0);
-        })
-
+       
         axios.get("http://localhost:3001/currentFigure").then((res) => {
             setTemp(res.data.temp);
             setHumidity(res.data.humidity);
             setLight({ data: res.data.light });
             setMoisture({ data: res.data.moisture });
+            setStatusCode(200);
+        })
+        .catch((err) => {
+            setStatusCode(0);
         });
 
         socket.on("feedFromServer2", (data) => {
