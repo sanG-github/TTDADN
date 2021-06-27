@@ -321,6 +321,7 @@ function GardenControl() {
                                         color="primary"
                                         name="autoWatering"
                                         inputProps={{ 'aria-label': 'primary checkbox' }}
+                                        label="Tự động tưới"
                                     />
                                     <Button onClick={()=>handleWaterLoading(`Hệ thống tưới của zone ${zone} đang được`)}>{waterProcessing === false ? "Mở" : "Tắt"}</Button>
                                 </div>   
