@@ -65,14 +65,14 @@ const SiderDemo = () => {
                                 title="Quản lý tài khoản"
                             >
                                 <Menu.Item key="3">Feature 1a</Menu.Item>
-                                <Menu.Item
-                                    key="4"
-                                >
+                                <Menu.Item key="4">
                                     <Link to="/user">Đổi mật khẩu</Link>
                                 </Menu.Item>
                                 <Menu.Item
                                     key="5"
-                                    icon={<FontAwesomeIcon icon={faSignOutAlt} />}
+                                    icon={
+                                        <FontAwesomeIcon icon={faSignOutAlt} />
+                                    }
                                 >
                                     <Link to="/logout">Đăng xuất</Link>
                                 </Menu.Item>
@@ -103,15 +103,11 @@ const SiderDemo = () => {
                                     Trung tâm điều khiển
                                 </Link>
                             </Menu.Item>
-                            <Menu.Item
-                                key="12"
-                                icon={<ControlOutlined/>}
-                            >
+                            <Menu.Item key="12" icon={<ControlOutlined />}>
                                 <Link to="/garden-control">
-                                    Điều khiểm vườn
+                                    Điều khiển vườn
                                 </Link>
                             </Menu.Item>
-                            
                         </Menu>
                     </Sider>
                     <Layout className="site-layout">

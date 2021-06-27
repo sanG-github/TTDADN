@@ -82,6 +82,7 @@ const Account = (props) => {
                     `Welcome back ${response.data[0].username}`,
                     true
                 );
+                window.localStorage.setItem('username', username);
                 dispatch(updateUsername(username))
                 props.setLoggedIn(true);
                 
