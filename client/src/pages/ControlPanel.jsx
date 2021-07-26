@@ -3,7 +3,7 @@ import "antd/dist/antd.css";
 import "../styles/ControlPanel.css";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faEdit,faPlus} from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { Card } from "antd";
 import { Switch } from "antd";
 import { io } from "socket.io-client";
@@ -11,14 +11,14 @@ import { Select } from "antd";
 import { Slider } from "antd";
 import { Input } from "antd";
 import { Button } from "antd";
-import { Table} from 'antd';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import 'animate.css'
+import { Table } from "antd";
+import TextField from "@material-ui/core/TextField";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import "animate.css";
 import ErrorPage from "./ErrorPage";
 import { SmileOutlined } from "@ant-design/icons";
 import { notification } from "antd";
@@ -73,20 +73,22 @@ function publishData(datum, value) {
     console.log("Success");
 }
 
-function Led({datum}){
-
-    function onChange(value){
+function Led({ datum }) {
+    function onChange(value) {
         //publish
         publishData(datum, value);
     }
 
     return (
-        <Card title={datum.name} style={{ width: 300, margin: "10px 10px" ,borderRadius: "20px"}}>
+        <Card
+            title={datum.name}
+            style={{ width: 300, margin: "10px 10px", borderRadius: "20px" }}
+        >
             <p>ID thiết bị: {datum.id}</p>
-            <p>{datum.status}</p>
+            <p>Trạng thái: {datum.status}</p>
             <span>Chọn :</span>
             <Select
-                defaultValue="2"
+                defaultValue={datum.last_values}
                 onChange={(value) => onChange(value)}
                 style={{ width: 100, margin: "0 20px" }}
             >
@@ -113,13 +115,13 @@ function Speaker({ datum }) {
         <Card
             title={datum.name}
             extra=""
-            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
+            style={{ width: 300, margin: "10px 10px", borderRadius: "20px" }}
         >
             <p>ID thiết bị: {datum.id}</p>
-            <p>{datum.status}</p>
+            <p>Trạng thái: {datum.status}</p>
             <p>Âm lượng</p>
             <Slider
-                defaultValue={500}
+                defaultValue={datum.last_values}
                 min={0}
                 max={1023}
                 onChange={(value) => onChange(value)}
@@ -153,20 +155,12 @@ function LCD({ datum }) {
     return (
         <Card
             title={datum.name}
-            extra={
-                <Switch
-                    defaultChecked
-                    onChange={(checked, event) => {
-                        onChange(checked, event, datum);
-                    }}
-                />
-            }
-            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
+            style={{ width: 300, margin: "10px 10px", borderRadius: "20px" }}
         >
             <p>ID thiết bị: {datum.id}</p>
-            <p>{datum.status}</p>
+            <p>Trạng thái: {datum.status}</p>
             <Search
-                placeholder="Nhập chuỗi kí tự"
+                placeholder={datum.last_values}
                 allowClear
                 enterButton="Nhập"
                 size="large"
@@ -186,25 +180,29 @@ function WaterPump({ datum }) {
             title={datum.name}
             extra={
                 <Switch
-                    defaultChecked
+                    defaultChecked={datum.last_values === "1"}
+                    value={value}
                     onChange={(checked) => {
+                        console.log(checked);
                         const data = checked ? 1 : 0;
+                        publishData(datum, data);
                         setValue(data);
-                        publishData(datum, value);
                     }}
                 />
             }
-            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
+            style={{ width: 300, margin: "10px 10px", borderRadius: "20px" }}
         >
             <p>ID thiết bị: {datum.id}</p>
-            <p>{datum.status}</p>
+            <p>Trạng thái: {datum.status}</p>
         </Card>
     );
 }
 
 function Engine({ datum }) {
     const [value, setValue] = useState(125);
-    const [direction, setDirection] = useState(true);
+    const [direction, setDirection] = useState(
+        datum.last_values >= 0 ? true : false
+    );
 
     function onClick(e) {
         // publish
@@ -222,29 +220,21 @@ function Engine({ datum }) {
     return (
         <Card
             title={datum.name}
-            extra={
-                <Switch
-                    defaultChecked
-                    onChange={(checked) => {
-                        handleChange(checked);
-                    }}
-                />
-            }
-            style={{ width: 300, margin: "10px 10px" , borderRadius: "20px"}}
+            style={{ width: 300, margin: "10px 10px", borderRadius: "20px" }}
         >
             <p>ID thiết bị: {datum.id}</p>
-            <p>{datum.status}</p>
+            <p>Trạng thái: {datum.status}</p>
             <p>
                 Chiều quay :{" "}
-                {direction === true
+                {direction
                     ? "Thuận chiều kim đồng hồ"
-                    : "Ngược chiều kim đồng hồ"}{" "}
+                    : "Ngược chiều kim đồng hồ"}
             </p>
             <p>
-                {" "}
                 Đổi chiều
                 <span>
                     <Switch
+                        defaultChecked={direction}
                         value={direction}
                         style={{ margin: "0 20px" }}
                         onChange={switchDirection}
@@ -253,7 +243,7 @@ function Engine({ datum }) {
             </p>
             <p>Tốc độ quay</p>
             <Slider
-                defaultValue={0}
+                defaultValue={Math.abs(datum.last_values)}
                 min={0}
                 max={255}
                 onChange={handleChange}
@@ -274,11 +264,11 @@ function ControlPanel() {
     const [statusCode, setStatusCode] = useState(200);
 
     let name, type, feedName, feed, zoneId;
-   
+
     //Các function để UPDATE ràn buộc mới xuống database
     const handleClickOpen = (record) => {
-        console.log("open")
-        setItem(record)
+        console.log("open");
+        setItem(record);
         setOpen(true);
     };
 
@@ -287,131 +277,124 @@ function ControlPanel() {
     };
 
     const handleClose = () => {
-        console.log("close")
+        console.log("close");
         setOpen(false);
     };
 
     const handleSubmit = () => {
-        console.log(item)
-        axios.post("http://localhost:3001/setConstrain", item)
-        .then((res) => {
-            if (res.status === 200) {
-                openNotification(
-                    "Cập nhật ràng buộc thông số mới",
-                    `Successful`,
-                    true
-                );
-            }
-            else {
-                openNotification(
-                    "Đã có lỗi xảy!",
-                    `Fail`,
-                    false
-                );
-            }
-        })
-        .catch((err) => {
-            openNotification(
-                "Đã có lỗi xảy!",
-                `Fail`,
-                false
-            );
-        });
-        setTimeout ( handleClose,1000);
-        
-        
+        console.log(item);
+        axios
+            .post("http://localhost:3001/setConstrain", item)
+            .then((res) => {
+                if (res.status === 200) {
+                    openNotification(
+                        "Cập nhật ràng buộc thông số mới",
+                        `Successful`,
+                        true
+                    );
+                } else {
+                    openNotification("Đã có lỗi xảy!", `Fail`, false);
+                }
+            })
+            .catch((err) => {
+                openNotification("Đã có lỗi xảy!", `Fail`, false);
+            });
+        setTimeout(handleClose, 1000);
     };
 
     const handleSubmitNewDevice = () => {
-
         const newDevice = {
-            name : name,
-            type : type,
-            feed : feed,
-            feedName : feedName,
-            zoneId : zoneId
-        }
+            name: name,
+            type: type,
+            feed: feed,
+            feedName: feedName,
+            zoneId: zoneId,
+        };
 
         console.log(newDevice);
 
-        axios.post("http://localhost:3001/addNewDevice", newDevice)
-        .then((res) => {
-            if (res.data.statusCode === 200) {
-                console.log("success")
-                openNotification(
-                    "Thêm thiết bị mới thành công",
-                    `${res.data.message}`,
-                    true
-                );
-            }
-            else {
-                console.log("fail")
-                openNotification(
-                    "Đã có lỗi xảy!",
-                    `${res.data.message}`,
-                    false
-                );
-            }
-        })
-        .catch((err) => {
-            openNotification(
-                "Đã có lỗi xảy!",
-                ``,
-                false
-            );
-        });
-        setTimeout ( handleClose,1000);
-        
-        
+        axios
+            .post("http://localhost:3001/addNewDevice", newDevice)
+            .then((res) => {
+                if (res.data.statusCode === 200) {
+                    // console.log("success");
+                    openNotification(
+                        "Thêm thiết bị mới thành công",
+                        `${res.data.message}`,
+                        true
+                    );
+                } else {
+                    console.log("fail");
+                    openNotification(
+                        "Đã có lỗi xảy!",
+                        `${res.data.message}`,
+                        false
+                    );
+                }
+            })
+            .catch((err) => {
+                openNotification("Đã có lỗi xảy!", ``, false);
+            });
+        setTimeout(handleClose, 1000);
     };
 
-    const handleChangeUpper = (e)=>{
-        setItem(
-            {
-                id : item.id,
-                type : item.type,
-                upper_bound : parseInt(e.target.value),
-                lower_bound : parseInt(item.lower_bound)
-            }
-        )
-    }
+    const handleChangeUpper = (e) => {
+        setItem({
+            id: item.id,
+            type: item.type,
+            upper_bound: parseInt(e.target.value),
+            lower_bound: parseInt(item.lower_bound),
+        });
+    };
 
-    const handleChangeLower = (e)=>{
-        setItem(
-            {
-                id : item.id,
-                type : item.type,
-                upper_bound : parseInt(item.upper_bound),
-                lower_bound : parseInt(e.target.value)
-            }
-        )
-    }
+    const handleChangeLower = (e) => {
+        setItem({
+            id: item.id,
+            type: item.type,
+            upper_bound: parseInt(item.upper_bound),
+            lower_bound: parseInt(e.target.value),
+        });
+    };
 
-    const handleChange = (e,typeChange)=>{
-        switch(typeChange){
-            case 'name': name = e.target.value; break;
-            case 'type': type = e.target.value; break;
-            case 'feedName': feedName = e.target.value; break;
-            case 'feed': feed = e.target.value; break;
-            case 'zone': zoneId = e.target.value; break;
+    const handleChange = (e, typeChange) => {
+        switch (typeChange) {
+            case "name":
+                name = e.target.value;
+                break;
+            case "type":
+                type = e.target.value;
+                break;
+            case "feedName":
+                feedName = e.target.value;
+                break;
+            case "feed":
+                feed = e.target.value;
+                break;
+            case "zone":
+                zoneId = e.target.value;
+                break;
             default:
                 break;
         }
-    }
+    };
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/device`).then((response) => {
-            setData(response.data);
-            setStatusCode(200)
-        })
-        .catch(err => setStatusCode(0));
+        axios
+            .get(`http://localhost:3001/device`)
+            .then((response) => {
+                console.log(response.data);
+                setData(response.data);
+                setStatusCode(200);
+            })
+            .catch((err) => setStatusCode(0));
 
-        axios.get(`http://localhost:3001/constrain`).then((response) => {
-            setConstrains(response.data);
-            setStatusCode(200)
-        })
-        .catch(err => setStatusCode(0));
-
+        axios
+            .get(`http://localhost:3001/constrain`)
+            .then((response) => {
+                setConstrains(response.data);
+                setStatusCode(200);
+            })
+            .catch((err) => setStatusCode(0));
     }, [open]);
 
     // const changeFeedData = (checked) => {
@@ -431,8 +414,8 @@ function ControlPanel() {
     //     );
     // };
 
-    if(statusCode !== 200){
-        return <ErrorPage />
+    if (statusCode !== 200) {
+        return <ErrorPage />;
     }
 
     return (
@@ -440,31 +423,81 @@ function ControlPanel() {
             <div className="title">Bảng điều khiển thiết bị</div>
             <div className="ControlPanel__Button">
                 Thêm thiết bị mới :
-                <Button style={{margin: "0 10px"}} onClick={()=>handleClick()}><FontAwesomeIcon icon={faPlus}/></Button>
+                <Button
+                    style={{ margin: "0 10px" }}
+                    onClick={() => handleClick()}
+                >
+                    <FontAwesomeIcon icon={faPlus} />
+                </Button>
             </div>
             <div className="Device-block">
                 {data &&
                     data
                         .filter((datum) => datum.type === "output")
-                        .map((datum,id) => {
+                        .map((datum, id) => {
                             switch (datum.feedName) {
                                 case "LED":
-                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Led datum={datum} /></div>
-                                    
+                                    return (
+                                        <div
+                                            className="animate__animated animate__fadeInDown"
+                                            style={{
+                                                animationDelay: `${id * 0.1}s`,
+                                            }}
+                                        >
+                                            <Led datum={datum} />
+                                        </div>
+                                    );
+
                                 case "LCD":
-                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><LCD datum={datum} /></div>
-                                    
+                                    return (
+                                        <div
+                                            className="animate__animated animate__fadeInDown"
+                                            style={{
+                                                animationDelay: `${id * 0.1}s`,
+                                            }}
+                                        >
+                                            <LCD datum={datum} />
+                                        </div>
+                                    );
+
                                 case "RELAY":
-                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><WaterPump datum={datum} /></div>
-                               
+                                    return (
+                                        <div
+                                            className="animate__animated animate__fadeInDown"
+                                            style={{
+                                                animationDelay: `${id * 0.1}s`,
+                                            }}
+                                        >
+                                            <WaterPump datum={datum} />
+                                        </div>
+                                    );
+
                                 case "DRV_PWM":
-                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Engine datum={datum} /></div>
-                                    
+                                    return (
+                                        <div
+                                            className="animate__animated animate__fadeInDown"
+                                            style={{
+                                                animationDelay: `${id * 0.1}s`,
+                                            }}
+                                        >
+                                            <Engine datum={datum} />
+                                        </div>
+                                    );
+
                                 case "SPEAKER":
-                                    return <div className="animate__animated animate__fadeInDown" style={{animationDelay: `${id*0.1}s`}}><Speaker datum={datum} /></div>
-                      
+                                    return (
+                                        <div
+                                            className="animate__animated animate__fadeInDown"
+                                            style={{
+                                                animationDelay: `${id * 0.1}s`,
+                                            }}
+                                        >
+                                            <Speaker datum={datum} />
+                                        </div>
+                                    );
+
                                 default:
-                                    return <div></div>
+                                    return <div></div>;
                             }
                         })}
             </div>
@@ -474,128 +507,160 @@ function ControlPanel() {
             }
             <div className="title">Thông số ràng buộc</div>
             <div>
-                <Table dataSource={constrains} >
+                <Table dataSource={constrains}>
                     <Column title="ID" dataIndex="id" key="id" />
-                    <Column title="Thông số ràng buộc" dataIndex="type" key="type" />
-                    <Column title="Chặn dưới" dataIndex="lower_bound" key="lower_bound" />
-                    <Column title="Chặn trên" dataIndex="upper_bound" key="upper_bound" />
-                    <Column title="Chỉnh sửa" render={(text, record) => {
-                        
-                        return (
-                            <Button variant="outlined" color="primary" onClick={()=>handleClickOpen(record)}>
-                                <FontAwesomeIcon icon={faEdit}/>
-                            </Button>
-                        )
-                    }}/>
+                    <Column
+                        title="Thông số ràng buộc"
+                        dataIndex="type"
+                        key="type"
+                    />
+                    <Column
+                        title="Chặn dưới"
+                        dataIndex="lower_bound"
+                        key="lower_bound"
+                    />
+                    <Column
+                        title="Chặn trên"
+                        dataIndex="upper_bound"
+                        key="upper_bound"
+                    />
+                    <Column
+                        title="Chỉnh sửa"
+                        render={(text, record) => {
+                            return (
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    onClick={() => handleClickOpen(record)}
+                                >
+                                    <FontAwesomeIcon icon={faEdit} />
+                                </Button>
+                            );
+                        }}
+                    />
                 </Table>
             </div>
 
-            {// Dialog để edit ràng buộc
+            {
+                // Dialog để edit ràng buộc
             }
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-                <DialogTitle id="form-dialog-title">Thay đổi ràng buộc</DialogTitle>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="form-dialog-title"
+            >
+                <DialogTitle id="form-dialog-title">
+                    Thay đổi ràng buộc
+                </DialogTitle>
                 <DialogContent>
-                <DialogContentText>
-                    Nhập thông số ràn buộc mới cho {item.type}
-                </DialogContentText>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="name"
-                    label="Chặn trên mới"
-                    type="text"
-                    fullWidth
-                    style={{margin: "10px 0px"}}
-                    onChange={(e) => handleChangeUpper(e)}
-                    defaultValue={item.upper_bound}
-                />
-                <TextField
-                    margin="dense"
-                    id="name"
-                    label="Chặn dưới mới"
-                    type="text"
-                    fullWidth
-                    style={{margin: "10px 0px"}}
-                    onChange={(e) => handleChangeLower(e)}
-                    defaultValue={item.lower_bound}
-                />
+                    <DialogContentText>
+                        Nhập thông số ràn buộc mới cho {item.type}
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        label="Chặn trên mới"
+                        type="text"
+                        fullWidth
+                        style={{ margin: "10px 0px" }}
+                        onChange={(e) => handleChangeUpper(e)}
+                        defaultValue={item.upper_bound}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="name"
+                        label="Chặn dưới mới"
+                        type="text"
+                        fullWidth
+                        style={{ margin: "10px 0px" }}
+                        onChange={(e) => handleChangeLower(e)}
+                        defaultValue={item.lower_bound}
+                    />
                 </DialogContent>
                 <DialogActions>
-                <Button onClick={handleClose} color="primary">
-                    Cancel
-                </Button>
-                <Button onClick={handleSubmit} color="primary">
-                    Thay đổi
-                </Button>
+                    <Button onClick={handleClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSubmit} color="primary">
+                        Thay đổi
+                    </Button>
                 </DialogActions>
             </Dialog>
 
-
-            <Dialog open={openAdd} onClose={handleClose} aria-labelledby="form-dialog-title">
-                <DialogTitle id="form-dialog-title">Thêm thiết bị mới</DialogTitle>
+            <Dialog
+                open={openAdd}
+                onClose={handleClose}
+                aria-labelledby="form-dialog-title"
+            >
+                <DialogTitle id="form-dialog-title">
+                    Thêm thiết bị mới
+                </DialogTitle>
                 <DialogContent>
-                <DialogContentText>
-                    Nhập thông số của thiết bị mới.
-                </DialogContentText>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="name"
-                    label="Tên thiết bị"
-                    type="text"
-                    fullWidth
-                    style={{margin: "10px 0px"}}
-                    onChange={(e) => handleChange(e,'name')}
-                />
-                <TextField
-                    margin="dense"
-                    id="name"
-                    label="Loại thiết bị"
-                    type="text"
-                    fullWidth
-                    style={{margin: "10px 0px"}}
-                    onChange={(e) => handleChange(e,'type')}
-                />
-                <TextField
-                    margin="dense"
-                    id="name"
-                    label="Tên Feed của thiết bị"
-                    type="text"
-                    fullWidth
-                    style={{margin: "10px 0px"}}
-                    onChange={(e) => handleChange(e,'feedName')}
-                />
-                <TextField
-                    margin="dense"
-                    id="name"
-                    label="Tên Feed của thiết bị ở trên Adafruit"
-                    type="text"
-                    fullWidth
-                    style={{margin: "10px 0px"}}
-                    onChange={(e) => handleChange(e,'feed')}
-                />
-                <TextField
-                    margin="dense"
-                    id="name"
-                    label="Zone ID"
-                    type="number"
-                    fullWidth
-                    style={{margin: "10px 0px"}}
-                    onChange={(e) => handleChange(e,'zone')}
-                />
+                    <DialogContentText>
+                        Nhập thông số của thiết bị mới.
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        label="Tên thiết bị"
+                        type="text"
+                        fullWidth
+                        style={{ margin: "10px 0px" }}
+                        onChange={(e) => handleChange(e, "name")}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="name"
+                        label="Loại thiết bị"
+                        type="text"
+                        fullWidth
+                        style={{ margin: "10px 0px" }}
+                        onChange={(e) => handleChange(e, "type")}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="name"
+                        label="Tên Feed của thiết bị"
+                        type="text"
+                        fullWidth
+                        style={{ margin: "10px 0px" }}
+                        onChange={(e) => handleChange(e, "feedName")}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="name"
+                        label="Tên Feed của thiết bị ở trên Adafruit"
+                        type="text"
+                        fullWidth
+                        style={{ margin: "10px 0px" }}
+                        onChange={(e) => handleChange(e, "feed")}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="name"
+                        label="Zone ID"
+                        type="number"
+                        fullWidth
+                        style={{ margin: "10px 0px" }}
+                        onChange={(e) => handleChange(e, "zone")}
+                    />
                 </DialogContent>
                 <DialogActions>
-                <Button onClick={()=>handleClick()} color="primary">
-                    Cancel
-                </Button>
-                <Button onClick={()=>handleSubmitNewDevice()} color="primary">
-                    Thay đổi
-                </Button>
+                    <Button onClick={() => handleClick()} color="primary">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={() => handleSubmitNewDevice()}
+                        color="primary"
+                    >
+                        Thay đổi
+                    </Button>
                 </DialogActions>
             </Dialog>
         </div>
     );
 }
-
 
 export default ControlPanel;

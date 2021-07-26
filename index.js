@@ -357,35 +357,33 @@ const io = socket(server);
 var client, client2;
 
 async function updateClient() {
-    await axios.get("http://dadn.esp32thanhdanh.link/").then((res) => {
-        const options = {
-            port: process.env.PORT,
-            host: process.env.HOST,
-            username: process.env.USERX,
-            password: "aio_YWqQ75LLnzE66cGrbMWNhCka1Xhb",
-        };
+    const options = {
+        port: process.env.PORT,
+        host: process.env.HOST,
+        username: process.env.USERX,
+        password: process.env.KEY,
+    };
 
-        const options2 = {
-            port: process.env.PORT,
-            host: process.env.HOST,
-            username: process.env.USERX_02,
-            password: "aio_byWm36bA6XUDSqPfCfVboXjt3Uf1",
-        };
+    const options2 = {
+        port: process.env.PORT,
+        host: process.env.HOST,
+        username: process.env.USERX_02,
+        password: process.env.KEY_02,
+    };
 
-        // console.log(options);
-        // console.log(options2);
+    // console.log(options);
+    // console.log(options2);
 
-        client = mqtt.connect("mqtt://" + options.host, options);
+    client = mqtt.connect("mqtt://" + options.host, options);
 
-        client2 = mqtt.connect("mqtt://" + options2.host, options2);
+    client2 = mqtt.connect("mqtt://" + options2.host, options2);
 
-        client.on("connect", function () {
-            console.log("mqtt: server CSE_BBC connected!");
-        });
+    client.on("connect", function () {
+        console.log("mqtt: server CSE_BBC connected!");
+    });
 
-        client2.on("connect", function () {
-            console.log("mqtt: server CSE_BBC1 connected!");
-        });
+    client2.on("connect", function () {
+        console.log("mqtt: server CSE_BBC1 connected!");
     });
 
     // axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
@@ -557,10 +555,30 @@ io.on("connection", (socket) => {
             console.log(JSON.parse(patternData));
             if (data.message.name === "RELAY" || data.message.name == "LIGHT") {
                 client2.publish(data.topic, JSON.stringify(data.message));
-                console.log("Publish success");
+                console.log("BBC1 publish success");
+
+                // Insert last_values to database
+                const sqlUpdate = `UPDATE device SET last_values = ${data.message.data} WHERE id = ${data.message.id};`;
+                database.query(sqlUpdate, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(`Insert successfully`, result);
+                    }
+                });
             } else {
                 client.publish(data.topic, JSON.stringify(data.message));
-                console.log("Publish success");
+                console.log("BBC Publish success");
+
+                // Insert last_values to database
+                const sqlUpdate = `UPDATE device SET last_values = ${data.message.data} WHERE id = ${data.message.id};`;
+                database.query(sqlUpdate, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(`Insert successfully`, result);
+                    }
+                });
             }
         } catch (err) {
             console.log(err);
@@ -981,7 +999,6 @@ async function loadConstrain() {
             constrain[i.type].upper_bound = i.upper_bound;
         });
     });
-    console.log(constrain);
 }
 
 loadConstrain();

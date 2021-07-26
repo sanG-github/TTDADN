@@ -64,7 +64,6 @@ const SiderDemo = () => {
                                 icon={<UserOutlined />}
                                 title="Quản lý tài khoản"
                             >
-                                <Menu.Item key="3">Feature 1a</Menu.Item>
                                 <Menu.Item key="4">
                                     <Link to="/user">Đổi mật khẩu</Link>
                                 </Menu.Item>
