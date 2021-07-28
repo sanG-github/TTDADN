@@ -63,7 +63,7 @@ app.use(
 const database = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "sanglaso1",
+    password: "quan0402",
     database: "DADN",
 });
 
@@ -378,37 +378,37 @@ async function updateClient() {
 
     client2 = mqtt.connect("mqtt://" + options2.host, options2);
 
-    client.on("connect", function () {
+    await client.on("connect", function () {
         console.log("mqtt: server CSE_BBC connected!");
     });
 
-    client2.on("connect", function () {
+    await client2.on("connect", function () {
         console.log("mqtt: server CSE_BBC1 connected!");
     });
 
-    // axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
-    //     const feeds = res.data;
-    //     console.log(
-    //         `----------------------\nAll feeds from ${process.env.USERX}:`
-    //     );
-    //     feeds.map((feed) => {
-    //         console.log("\t", feed.name);
-    //         client.subscribe(process.env.USERX + "/feeds/" + feed.name);
-    //     });
-    //    alertEmitter.emit("clientready");
-    // });
+    axios.get(`https://io.adafruit.com/api/v2/CSE_BBC/feeds`).then((res) => {
+        const feeds = res.data;
+        console.log(
+            `----------------------\nAll feeds from ${process.env.USERX}:`
+        );
+        feeds.map((feed) => {
+            console.log("\t", feed.name);
+            client.subscribe(process.env.USERX + "/feeds/" + feed.name);
+        });
+       alertEmitter.emit("clientready");
+    });
 
-    // axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
-    //     const feeds = res.data;
-    //     console.log(
-    //         `----------------------\nAll feeds from ${process.env.USERX_02}:`
-    //     );
-    //     feeds.map((feed) => {
-    //         console.log("\t", feed.name);
-    //         client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
-    //     });
-    //     alertEmitter.emit("client2ready");
-    // });
+    axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
+        const feeds = res.data;
+        console.log(
+            `----------------------\nAll feeds from ${process.env.USERX_02}:`
+        );
+        feeds.map((feed) => {
+            console.log("\t", feed.name);
+            client2.subscribe(process.env.USERX_02 + "/feeds/" + feed.name);
+        });
+        alertEmitter.emit("client2ready");
+    });
 
     // message when data changed from
     client.on("message", function (topic, message) {
@@ -558,7 +558,8 @@ io.on("connection", (socket) => {
                 console.log("BBC1 publish success");
 
                 // Insert last_values to database
-                const sqlUpdate = `UPDATE device SET last_values = ${data.message.data} WHERE id = ${data.message.id};`;
+                const sqlUpdate = `UPDATE device SET last_values = '${data.message.data}' WHERE id = ${data.message.id};`;
+                console.log(sqlUpdate)
                 database.query(sqlUpdate, (err, result) => {
                     if (err) {
                         console.log(err);
@@ -571,7 +572,7 @@ io.on("connection", (socket) => {
                 console.log("BBC Publish success");
 
                 // Insert last_values to database
-                const sqlUpdate = `UPDATE device SET last_values = ${data.message.data} WHERE id = ${data.message.id};`;
+                const sqlUpdate = `UPDATE device SET last_values = '${data.message.data}' WHERE id = ${data.message.id};`;
                 database.query(sqlUpdate, (err, result) => {
                     if (err) {
                         console.log(err);
@@ -586,6 +587,17 @@ io.on("connection", (socket) => {
     });
 
     ioSocket = socket;
+});
+
+app.get("/deviceWithZoneId/:id", (req, res) => {
+    const sqlSelect = `SELECT * FROM DADN.device WHERE zoneId = ${req.params.id};`;
+    database.query(sqlSelect, (err, result) => {
+        console.log(result);
+        if (err) {
+            console.log(err);
+        }
+        res.send(result);
+    });
 });
 
 /**

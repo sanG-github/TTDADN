@@ -27,9 +27,7 @@ const socket = io("http://localhost:3001", {
     },
 });
 
-function publishData(type, zoneId, value) {
-    let deviceList = [];
-
+function publishData(type, zoneId, value, deviceList) {
     let feedName = type === "water" ? "RELAY" : "DRV_PWM";
     console.log(type, zoneId);
 
@@ -101,7 +99,7 @@ function GardenControl() {
     }));
 
     const classes = useStyles();
-
+    const [device, setDevice] = useState({})
     const [temp, setTemp] = useState(200);
     const [humidity, setHumidity] = useState(0);
     const [light, setLight] = useState({ data: 0 });
@@ -123,7 +121,7 @@ function GardenControl() {
 
     function handleCurtainLoading(message) {
         openNotification("Thông báo", message, true);
-        publishData("curtain", zone, openState === true ? 255 : -255);
+        publishData("curtain", zone, openState === true ? 255 : -255, device);
 
         setCurtainProcessing(true);
         setTimeout(() => {
@@ -132,7 +130,7 @@ function GardenControl() {
                 `Rèm đã được ${openState === true ? "đóng" : "mở"}`,
                 true
             );
-            publishData("curtain", zone, 0);
+            publishData("curtain", zone, 0, device);
             setCurtainProcessing(false);
             setOpenState(!openState);
         }, 5000);
@@ -149,10 +147,10 @@ function GardenControl() {
     function handleWaterLoading() {
         if (waterProcessing) {
             openNotification("Thông báo", `Đã tắt hệ thống tưới nước.`, true);
-            publishData("water", zone, 0);
+            publishData("water", zone, 0, device);
             setWaterProcessing(false);
         } else {
-            publishData("water", zone, 1);
+            publishData("water", zone, 1, device);
             setWaterProcessing(true);
             openNotification("Thông báo", `Đã bật hệ thống tưới nước.`, true);
         }
@@ -160,7 +158,7 @@ function GardenControl() {
 
     function handleCountdownCircle() {
         openNotification("Thông báo", `Đã tắt hệ thống tưới nước.`, true);
-        publishData("water", zone, 0);
+        publishData("water", zone, 0, device);
         setWaterProcessing(false);
         return [false, 0];
     }
@@ -218,6 +216,17 @@ function GardenControl() {
         });
     }, []);
 
+    useEffect(() => {
+        axios.get(`http://localhost:3001/deviceWithZoneId/${zone}`)
+            .then((res) => {
+                const arr = res.data.filter((item) => item.feedName === 'RELAY')
+                setDevice(res.data.filter((item) => item.feedName === 'RELAY'))
+                setWaterProcessing(arr[0].last_values === "1" ? true : false)
+            }).catch((err) => { console.log(err) })
+    }, [zone])
+
+    console.log('device', device)
+    console.log('auto water', autoWatering)
     if (statusCode !== 200) {
         return <ErrorPage />;
     }
@@ -419,10 +428,9 @@ function GardenControl() {
                                 <Button
                                     onClick={() =>
                                         handleCurtainLoading(
-                                            `Rèm của zone ${zone} đang được ${
-                                                openState === true
-                                                    ? "đóng"
-                                                    : "mở"
+                                            `Rèm của zone ${zone} đang được ${openState === true
+                                                ? "đóng"
+                                                : "mở"
                                             }`
                                         )
                                     }

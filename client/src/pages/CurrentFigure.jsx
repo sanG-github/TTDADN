@@ -7,11 +7,23 @@ import lightImg from "../img/light.png";
 import temperatureImg from "../img/temperature.png";
 import moistureImg from "../img/moisture.png";
 import humidityImg from "../img/humidity.png";
-// import { notification } from "antd";
-// import { SmileOutlined } from "@ant-design/icons";
+import { SmileOutlined } from "@ant-design/icons";
 import 'animate.css'
+import { notification } from "antd";
 import ErrorPage from "./ErrorPage";
 
+const openNotification = (message, description, isOk) => {
+    let icon;
+    if (!isOk)
+        icon = <SmileOutlined rotate={180} style={{ color: "#eb2f96" }} />;
+    else icon = <SmileOutlined style={{ color: "#108ee9" }} />;
+
+    notification.open({
+        message,
+        description,
+        icon,
+    });
+};
 
 const io = require("socket.io-client");
 
@@ -53,10 +65,10 @@ function CurrentFigure() {
             setConstrains(response.data);
             setStatusCode(200)
         })
-        .catch((err) => {
-            // openNotification("Something happened!","Lost connection to server.",false)
-            setStatusCode(0);
-        })
+            .catch((err) => {
+                // openNotification("Something happened!","Lost connection to server.",false)
+                setStatusCode(0);
+            })
 
         axios.get("http://localhost:3001/currentFigure").then((res) => {
             setTemp(res.data.temp);
@@ -65,10 +77,10 @@ function CurrentFigure() {
             setMoisture({ data: res.data.moisture });
             setStatusCode(200)
         })
-        .catch((err) => {
-            // openNotification("Something happened!","Lost connection to server.",false)
-            setStatusCode(0);
-        })
+            .catch((err) => {
+                // openNotification("Something happened!","Lost connection to server.",false)
+                setStatusCode(0);
+            })
 
         socket.on("feedFromServer2", (data) => {
             try {
@@ -77,11 +89,13 @@ function CurrentFigure() {
 
                 switch (res.name) {
                     case "LIGHT":
+                        openNotification("Thông báo", `Cập nhật thành công`, true);
                         setLight(JSON.parse(data.data));
                         break;
                     default:
                         break;
                 }
+                // openNotification("Thông báo", `${res.name} Cập nhật thành công`, true);
                 setStatusCode(200);
             } catch (err) {
                 // openNotification("Something happened!","Lost connection to server.",false)
@@ -96,6 +110,7 @@ function CurrentFigure() {
 
                 switch (res.name) {
                     case "TEMP-HUMID":
+                        openNotification("Thông báo", `Cập nhật thành công`, true);
                         setTemp(JSON.parse(data.data).data.split("-")[0]);
                         setHumidity(JSON.parse(data.data).data.split("-")[1]);
                         break;
@@ -105,6 +120,7 @@ function CurrentFigure() {
                     default:
                         break;
                 }
+                openNotification("Thông báo", `Cập nhật thành công`, true);
                 setStatusCode(200);
             } catch (err) {
                 setStatusCode(0);
@@ -113,22 +129,23 @@ function CurrentFigure() {
         });
     }, []);
 
-    if(statusCode !== 200){
+
+    if (statusCode !== 200) {
         return (
             <ErrorPage />
         )
     }
 
-        return (
+    return (
 
 
-            <div className="Current-Figure">
-                <div className="title">Thông số vườn cà chua hiện tại</div>
-                <div className="Banner">
-                    <img className="img animate__animated animate__slow animate__shakeY animate__infinite" src={tree} alt="" />
-                </div>
-    
-                { constrains.length !== 0 ? 
+        <div className="Current-Figure">
+            <div className="title">Thông số vườn cà chua hiện tại</div>
+            <div className="Banner">
+                <img className="img animate__animated animate__slow animate__shakeY animate__infinite" src={tree} alt="" />
+            </div>
+
+            {constrains.length !== 0 ?
                 <div className="Figure-Block animate__animated animate__fadeIn ">
                     <div className="Figure">
                         <img
@@ -140,7 +157,7 @@ function CurrentFigure() {
                         Nhiệt độ :{" "}
                         <p
                             style={
-                                temp >= constrains[1].lower_bound  && temp <= constrains[1].upper_bound
+                                temp >= constrains[1].lower_bound && temp <= constrains[1].upper_bound
                                     ? { color: "#08f25e" }
                                     : { color: "#ff3333" }
                             }
@@ -148,7 +165,7 @@ function CurrentFigure() {
                             {temp} độ C
                         </p>
                     </div>
-                    <div className="Figure animate__animated animate__fadeIn"  style={{animationDelay: "0.2s"}}>
+                    <div className="Figure animate__animated animate__fadeIn" style={{ animationDelay: "0.2s" }}>
                         <img
                             className="img"
                             style={{ width: "30px", margin: "0 5px" }}
@@ -166,7 +183,7 @@ function CurrentFigure() {
                             {light.data}
                         </p>{" "}
                     </div>
-                    <div className="Figure animate__animated animate__fadeIn"  style={{animationDelay: "0.4s"}}>
+                    <div className="Figure animate__animated animate__fadeIn" style={{ animationDelay: "0.4s" }}>
                         <img
                             className="img"
                             style={{ width: "30px", margin: "0 5px" }}
@@ -176,18 +193,18 @@ function CurrentFigure() {
                         Độ ẩm đất :{" "}
                         <p
                             style={
-                                moisture.data >= constrains[2].lower_bound  && moisture.data <= constrains[2].upper_bound
+                                moisture.data >= constrains[2].lower_bound && moisture.data <= constrains[2].upper_bound
                                     ? { color: "#08f25e" }
                                     : { color: "#ff3333" }
                             }
                         >
-                            {moisture.data} 
-                            
+                            {moisture.data}
+
                             {moisture.unit === "%" ? moisture.unit : "%"}
-                            
+
                         </p>
                     </div>
-                    <div className="Figure animate__animated animate__fadeIn"  style={{animationDelay: "0.6s"}}>
+                    <div className="Figure animate__animated animate__fadeIn" style={{ animationDelay: "0.6s" }}>
                         <img
                             className="img"
                             style={{ width: "30px", margin: "0 5px" }}
@@ -206,14 +223,14 @@ function CurrentFigure() {
                         </p>
                     </div>
                 </div>
-                : ""    
+                : ""
             }
-            </div>
-        );
-    
-    
-    
-    
+        </div>
+    );
+
+
+
+
 }
 
 export default CurrentFigure;
