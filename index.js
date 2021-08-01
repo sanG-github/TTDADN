@@ -395,7 +395,7 @@ async function updateClient() {
             console.log("\t", feed.name);
             client.subscribe(process.env.USERX + "/feeds/" + feed.name);
         });
-       alertEmitter.emit("clientready");
+        alertEmitter.emit("clientready");
     });
 
     axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
@@ -559,7 +559,7 @@ io.on("connection", (socket) => {
 
                 // Insert last_values to database
                 const sqlUpdate = `UPDATE device SET last_values = '${data.message.data}' WHERE id = ${data.message.id};`;
-                console.log(sqlUpdate)
+                console.log(sqlUpdate);
                 database.query(sqlUpdate, (err, result) => {
                     if (err) {
                         console.log(err);
@@ -909,7 +909,7 @@ admin.initializeApp({
 });
 
 alertEmitter.on("clientready", () => {
-    client.on("message", function (topic, message) {
+    client.on("message", async function (topic, message) {
         const values = JSON.parse(message);
         let table = "";
         switch (values.name) {
@@ -929,7 +929,7 @@ alertEmitter.on("clientready", () => {
                 "\nMessage: ",
                 message.toString()
             );
-            console.log("--------State");
+            console.log("======================\nState");
             console.log(state);
             if (state.active) {
                 if (state.alertState == "empty") {
@@ -937,9 +937,11 @@ alertEmitter.on("clientready", () => {
                 }
                 if (
                     state.alertState == "processing" ||
-                    state.alertState == "pending|cannotHandle"
+                    state.alertState == "pending|cannotHandle" ||
+                    state.alertState == "pending" ||
+                    state.alertState == "cancel"
                 ) {
-                    checkToCompleteTask(table, values.data);
+                    await checkToCompleteTask(table, values.data);
                 }
             }
         }
@@ -947,7 +949,7 @@ alertEmitter.on("clientready", () => {
 });
 
 alertEmitter.on("client2ready", () => {
-    client2.on("message", function (topic, message) {
+    client2.on("message", async function (topic, message) {
         const values = JSON.parse(message);
         let table = "";
         switch (values.name) {
@@ -964,7 +966,7 @@ alertEmitter.on("client2ready", () => {
                 "\nMessage: ",
                 message.toString()
             );
-            console.log("--------State");
+            console.log("======================\nState");
             console.log(state);
             if (state.active) {
                 if (state.alertState == "empty") {
@@ -972,9 +974,11 @@ alertEmitter.on("client2ready", () => {
                 }
                 if (
                     state.alertState == "processing" ||
-                    state.alertState == "pending|cannotHandle"
+                    state.alertState == "pending|cannotHandle" ||
+                    state.alertState == "pending" ||
+                    state.alertState == "cancel"
                 ) {
-                    checkToCompleteTask(table, values.data);
+                    await checkToCompleteTask(table, values.data);
                 }
             }
         }
@@ -1011,13 +1015,43 @@ async function loadConstrain() {
             constrain[i.type].upper_bound = i.upper_bound;
         });
     });
+    //console.log(constrain);
 }
 
 loadConstrain();
 
-function checkToCompleteTask(type, data) {
-    console.log("-----checkToCompleteTask");
-    console.log("state[" + type + "]");
+var devicesList = {
+    maybom: [],
+    quat: [],
+    maiche: [],
+};
+
+const loadDevices = async () => {
+    const res = await axios.get("http://localhost:3001/device");
+    const devices = await res.data;
+    const type = {
+        RELAY: "maybom",
+        DRV_PWM: "maiche",
+    };
+    let maybom = [];
+    let quat = [];
+    let maiche = [];
+    for (const key in devicesList) {
+        devicesList[key] = [];
+    }
+    devices.forEach((device) => {
+        if (device.feedName in type) {
+            devicesList[type[device.feedName]].push(device.id);
+        }
+    });
+    //console.log(devicesList);
+};
+
+loadDevices();
+
+async function checkToCompleteTask(type, data) {
+    console.log("======================\ncheckToCompleteTask");
+    console.log("state[" + type + "]" + data);
     if (type == "temperature") {
         let datath = data.split("-");
         let dtemperature = parseInt(datath[0]);
@@ -1027,7 +1061,7 @@ function checkToCompleteTask(type, data) {
                 dtemperature <= constrain.temperature.upper_bound &&
                 dtemperature >= constrain.temperature.lower_bound
             )
-                completetask();
+                await completetask();
             return;
         }
         if (state.humidity != "") {
@@ -1035,7 +1069,7 @@ function checkToCompleteTask(type, data) {
                 dhumid <= constrain.humidity.upper_bound &&
                 dhumid >= constrain.humidity.lower_bound
             ) {
-                completetask();
+                await completetask();
                 console.log("check complete ok");
             }
 
@@ -1048,13 +1082,13 @@ function checkToCompleteTask(type, data) {
                 dataint <= constrain[type].upper_bound &&
                 dataint >= constrain[type].lower_bound
             )
-                completetask();
+                await completetask();
         }
     }
 }
 
 function checkConstrain(type, data) {
-    console.log("-----checkconstrain");
+    console.log("======================\ncheckconstrain");
     let flag = false;
     if (type == "temperature") {
         let datath = data.split("-");
@@ -1089,7 +1123,7 @@ function checkConstrain(type, data) {
     if (
         state.moisture == mUpperBound ||
         state.temperature != "" ||
-        state.humidity == mLowerBound
+        state.humidity != ""
     ) {
         console.log("-----\ncheck cannotHanlde");
         alertEmitter.emit("cannotHandle");
@@ -1100,6 +1134,8 @@ function checkConstrain(type, data) {
     }
 }
 async function sendFCM(message) {
+    console.log("======================\nsendfcm");
+
     admin
         .messaging()
         .send(message)
@@ -1110,7 +1146,6 @@ async function sendFCM(message) {
         .catch((error) => {
             console.log("Error sending message:", error);
         });
-    console.log("-----\nsendfcm");
 }
 
 var state = {
@@ -1124,8 +1159,8 @@ var state = {
 
 var alertTimeOut;
 
-alertEmitter.on("cannotHandle", () => {
-    console.log("-----cannotHandle");
+alertEmitter.on("cannotHandle", async () => {
+    console.log("======================\ncannotHandle");
     pub2Loa("activate");
     state.alertState = "pending|cannotHandle";
     let m = {
@@ -1135,17 +1170,17 @@ alertEmitter.on("cannotHandle", () => {
             detail: "Hiện tại, chúng tôi không thể cải thiện tình trạng của khu vườn. Hãy kiểm tra khu vườn ngay.",
             alert: "cannotHandle",
             id: "dadn",
-            soil: state.moisture,
+            solid: state.moisture,
             temp: state.temperature,
             light: state.light,
             humid: state.humidity,
         },
         token: registrationToken,
     };
-    sendFCM(m);
+    await sendFCM(m);
 });
-alertEmitter.on("handle", () => {
-    console.log("-----handle");
+alertEmitter.on("handle", async () => {
+    console.log("======================\ncanHandle");
     pub2Loa("activate");
     state.alertState = "pending";
     let m = {
@@ -1155,21 +1190,21 @@ alertEmitter.on("handle", () => {
             detail: "Chúng tôi sẽ thực hiện công tác điều chỉnh nếu bạn không xác nhận trong 5 phút.",
             alert: "alert",
             id: "dadn",
-            soil: state.moisture,
+            solid: state.moisture,
             temp: state.temperature,
             light: state.light,
             humid: state.humidity,
         },
         token: registrationToken,
     };
-    sendFCM(m);
+    await sendFCM(m);
     console.log(state);
-    alertTimeOut = setTimeout(() => {
+    alertTimeOut = setTimeout(async () => {
         if (state.alertState == "pending") {
             pub2Loa("deactivate");
-            runTask();
+            await runTask();
         }
-    }, 1000 * 10);
+    }, 1000 * 30);
 });
 app.get("/api/activatealert", (req, res) => {
     res.json({
@@ -1187,8 +1222,8 @@ app.post("/api/activatealert", (req, res) => {
         active: state.active.toString(),
     });
 });
-app.post("/api/receiveresponefromapp", (req, res) => {
-    console.log("-----receiveresponefromapp");
+app.post("/api/receiveresponefromapp", async (req, res) => {
+    console.log("======================\nreceiveresponefromapp");
     console.log("body.action: " + req.body.action);
 
     if (
@@ -1199,18 +1234,18 @@ app.post("/api/receiveresponefromapp", (req, res) => {
         if (req.body.action == "acceptTask") {
             console.log("acceptTask");
             res.json({ id: req.body.id, status: "processing" });
-            runTask();
+            await runTask();
             return;
         }
         if (req.body.action == "cancelTask") {
             res.json({ id: req.body.id, status: "rejected" });
             console.log("rejected");
-            cancelTask();
+            await cancelTask();
             return;
         }
         if (req.body.action == "cannotHandle") {
             res.json({ id: req.body.id, status: "rejected" });
-            cannotHandle();
+            await cannotHandle();
             return;
         }
     } else {
@@ -1218,13 +1253,11 @@ app.post("/api/receiveresponefromapp", (req, res) => {
     }
 });
 
-function runTask() {
+async function runTask() {
     state.alertState = "processing";
     clearTimeout(alertTimeOut);
-    console.log("=======");
-    console.log("runTask");
+    console.log("======================\nrunTask");
     console.log(state);
-    console.log("=======");
     let m = {
         data: {
             alert: "processing",
@@ -1232,7 +1265,7 @@ function runTask() {
         },
         token: registrationToken,
     };
-    sendFCM(m);
+    await sendFCM(m);
     if (state.moisture == mLowerBound) {
         pub2MayBom("activate");
     }
@@ -1247,7 +1280,7 @@ function runTask() {
     }
 }
 
-function completetask() {
+async function completetask() {
     let m = {
         data: {
             alert: "taskCompleted",
@@ -1255,7 +1288,7 @@ function completetask() {
         token: registrationToken,
     };
     console.log("completeTask");
-    sendFCM(m);
+    await sendFCM(m);
     if (state.moisture == mLowerBound) {
         pub2MayBom("deactivate");
     }
@@ -1267,6 +1300,7 @@ function completetask() {
 }
 
 async function resetState() {
+    console.log("======================\nresetState");
     state.alertState = "empty";
     state.moisture = "";
     state.temperature = "";
@@ -1285,7 +1319,7 @@ async function cancelTask() {
     state.alertState = "cancel";
     setTimeout(() => {
         resetState();
-    }, 1000 * 20);
+    }, 1000 * 30);
 }
 
 async function cannotHandle() {
@@ -1299,20 +1333,21 @@ async function cannotHandle() {
     state.alertState = "cannotHandle";
     setTimeout(() => {
         resetState();
-    }, 1000 * 20);
+    }, 1000 * 30);
 }
 
 function pub2Quat(action) {
-    let data;
-    if (action == "activate") data = -200;
-    else data = 0;
-    let feed = `CSE_BBC/feeds/bk-iot-drv`;
-    //let feed = `quanledinh/feeds/bk-iot-drv`;
-    let id = [10];
-    id.forEach((i) => {
-        let message = `{\"id\":\"${i}\",\"name\":\"DRV_PWM\",\"data\":\"${data}\",\"unit\":\"\"}`;
-        client.publish(feed, message);
-    });
+    // let data;
+    // if (action == "activate") data = -200;
+    // else data = 0;
+    // //let feed = `CSE_BBC/feeds/bk-iot-drv`;
+    // let feed = `quanledinh/feeds/bk-iot-drv`;
+    // //let id = [10];
+    // let id = devicesList.quat;
+    // id.forEach((i) => {
+    //     let message = `{\"id\":\"${i}\",\"name\":\"DRV_PWM\",\"data\":\"${data}\",\"unit\":\"\"}`;
+    //     client.publish(feed, message);
+    // });
 }
 
 function pub2MayBom(action) {
@@ -1321,8 +1356,8 @@ function pub2MayBom(action) {
     else data = 0;
     let feed = `CSE_BBC1/feeds/bk-iot-relay`;
     //let feed = `quanledinh/feeds/bk-iot-relay`;
-    let id = [11];
-
+    //let id = [11];
+    let id = devicesList.maybom;
     id.forEach((i) => {
         let message = `{\"id\": \"${i}\", \"name\": \"RELAY\", \"data\": \"${data}\", \"unit\": \"\"}`;
         client2.publish(feed, message);
@@ -1336,8 +1371,8 @@ function pub2MaiChe(action) {
     else data = 0;
     let feed = `CSE_BBC/feeds/bk-iot-drv`;
     //let feed = `quanledinh/feeds/bk-iot-drv`;
-    let id = [11];
-
+    //let id = [11];
+    let id = devicesList.maiche;
     id.forEach((i) => {
         let message = `{\"id\":\"${i}\",\"name\":\"DRV_PWM\",\"data\":\"${data}\",\"unit\":\"\"}`;
         client.publish(feed, message);
@@ -1358,6 +1393,7 @@ function pub2Loa(action) {
     });
 }
 
+// ----------------------------------
 server.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
     updateClient();
