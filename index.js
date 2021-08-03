@@ -63,7 +63,8 @@ app.use(
 const database = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "quan0402",
+    //password: "quan0402",
+    password: "victory",
     database: "DADN",
 });
 
@@ -1354,7 +1355,7 @@ function pub2MayBom(action) {
     let data;
     if (action == "activate") data = 1;
     else data = 0;
-    let feed = `CSE_BBC1/feeds/bk-iot-relay`;
+    let feed = `${process.env.USERX_02}/feeds/bk-iot-relay`;
     //let feed = `quanledinh/feeds/bk-iot-relay`;
     //let id = [11];
     let id = devicesList.maybom;
@@ -1369,7 +1370,7 @@ function pub2MaiChe(action) {
     if (action == "activate-mo") data = -150;
     else if (action == "activate-dong") data = 150;
     else data = 0;
-    let feed = `CSE_BBC/feeds/bk-iot-drv`;
+    let feed = `${process.env.USERX}/feeds/bk-iot-drv`;
     //let feed = `quanledinh/feeds/bk-iot-drv`;
     //let id = [11];
     let id = devicesList.maiche;
@@ -1383,7 +1384,7 @@ function pub2Loa(action) {
     let data;
     if (action == "activate") data = 500;
     else data = 0;
-    let feed = `CSE_BBC/feeds/bk-iot-speaker`;
+    let feed = `${process.env.USERX}/feeds/bk-iot-speaker`;
     //let feed = `quanledinh/feeds/bk-iot-speaker`;
     let id = [2];
 
