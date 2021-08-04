@@ -31,45 +31,29 @@ function publishData(type, zoneId, value, deviceList) {
     let feedName = type === "water" ? "RELAY" : "DRV_PWM";
     console.log(type, zoneId);
 
-    axios
-        .get(`http://localhost:3001/device`)
-        .then((response) => {
-            response.data.forEach((device) => {
-                if (device.zoneId === zoneId && device.feedName === feedName) {
-                    deviceList.push(device);
-                }
-            });
-        })
-        .then(() => {
-            console.log(deviceList);
-            var server = "";
+    var server = "";
 
-            if (type === "water") {
-                server = "CSE_BBC1";
-            } else {
-                server = "CSE_BBC";
-            }
+    if (type === "water") {
+        server = "CSE_BBC1";
+    } else {
+        server = "CSE_BBC";
+    }
 
-            deviceList.forEach((datum) => {
-                socket.emit(
-                    "changeFeedData",
-                    `{
+    deviceList.forEach((datum) => {
+        if (datum.feedName == feedName)
+            socket.emit(
+                "changeFeedData",
+                `{
                 "topic":"${server}/feeds/${datum.feed}",
                 "message":{
                     "id":"${datum.id}",
                     "name":"${datum.feedName}",
-                    "data":"${value}",
+                    "data":"${value === "toggle" ? -datum.last_values : value}",
                     "unit":"${datum.unit === undefined ? "" : datum.unit}"
                 }
             }`
-                );
-            });
-        });
-}
-
-function formatTime(timeString) {
-    const time = timeString.split(":");
-    return parseInt(time[0]) * 60 + parseInt(time[1]);
+            );
+    });
 }
 
 const openNotification = (message, description, isOk) => {
@@ -99,7 +83,7 @@ function GardenControl() {
     }));
 
     const classes = useStyles();
-    const [device, setDevice] = useState({})
+    const [device, setDevice] = useState({});
     const [temp, setTemp] = useState(200);
     const [humidity, setHumidity] = useState(0);
     const [light, setLight] = useState({ data: 0 });
@@ -109,58 +93,34 @@ function GardenControl() {
 
     // điều khiển rèm và hệ thống tưới
     const [openState, setOpenState] = useState(true);
-    const [autoWatering, setAutoWatering] = useState(false);
     const [waterProcessing, setWaterProcessing] = useState(false);
-    const [curtainProcessing, setCurtainProcessing] = useState(false);
-
-    const [timeRange, setTimeRange] = useState("15:00");
 
     function handelClick(zoneId) {
         setZone(zoneId);
     }
 
     function handleCurtainLoading(message) {
-        openNotification("Thông báo", message, true);
-        publishData("curtain", zone, openState === true ? 255 : -255, device);
+        publishData("curtain", zone, "toggle", device);
 
-        setCurtainProcessing(true);
-        setTimeout(() => {
-            openNotification(
-                "Thông báo",
-                `Rèm đã được ${openState === true ? "đóng" : "mở"}`,
-                true
-            );
-            publishData("curtain", zone, 0, device);
-            setCurtainProcessing(false);
-            setOpenState(!openState);
-        }, 5000);
-    }
+        openNotification(
+            "Thông báo",
+            `Rèm đã được ${openState === true ? "đóng" : "mở"}`,
+            true
+        );
 
-    function handleSwitchChange(event) {
-        setAutoWatering(!autoWatering);
-    }
-
-    function handleTimepickerChange(e) {
-        setTimeRange(e.target.value);
+        setOpenState(!openState);
     }
 
     function handleWaterLoading() {
         if (waterProcessing) {
             openNotification("Thông báo", `Đã tắt hệ thống tưới nước.`, true);
-            publishData("water", zone, 0, device);
             setWaterProcessing(false);
+            publishData("water", zone, 0, device);
         } else {
             publishData("water", zone, 1, device);
             setWaterProcessing(true);
             openNotification("Thông báo", `Đã bật hệ thống tưới nước.`, true);
         }
-    }
-
-    function handleCountdownCircle() {
-        openNotification("Thông báo", `Đã tắt hệ thống tưới nước.`, true);
-        publishData("water", zone, 0, device);
-        setWaterProcessing(false);
-        return [false, 0];
     }
 
     useEffect(() => {
@@ -217,16 +177,31 @@ function GardenControl() {
     }, []);
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/deviceWithZoneId/${zone}`)
+        axios
+            .get(`http://localhost:3001/deviceWithZoneId/${zone}`)
             .then((res) => {
-                const arr = res.data.filter((item) => item.feedName === 'RELAY')
-                setDevice(res.data.filter((item) => item.feedName === 'RELAY'))
-                setWaterProcessing(arr[0].last_values === "1" ? true : false)
-            }).catch((err) => { console.log(err) })
-    }, [zone])
+                const water = res.data.filter(
+                    (item) => item.feedName === "RELAY"
+                );
+                const curtain = res.data.filter(
+                    (item) => item.feedName === "DRV_PWM"
+                );
 
-    console.log('device', device)
-    console.log('auto water', autoWatering)
+                console.log(curtain[0]);
+
+                setDevice(water.concat(curtain));
+                setWaterProcessing(water[0].last_values === "1" ? true : false);
+                setOpenState(
+                    curtain[0].last_values.indexOf("-") > -1 ? false : true
+                );
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }, [zone]);
+
+    console.log("device", device);
+
     if (statusCode !== 200) {
         return <ErrorPage />;
     }
@@ -360,15 +335,6 @@ function GardenControl() {
                             <div className="title">Zone : {zone}</div>
                             <div className="Module">
                                 <p>Hệ thống tưới</p>
-                                <Switch
-                                    checked={autoWatering}
-                                    onChange={handleSwitchChange}
-                                    color="primary"
-                                    name="autoWatering"
-                                    inputProps={{
-                                        "aria-label": "primary checkbox",
-                                    }}
-                                />
                                 <Button
                                     onClick={() =>
                                         handleWaterLoading(
@@ -380,64 +346,17 @@ function GardenControl() {
                                 </Button>
                             </div>
 
-                            {autoWatering === true ? (
-                                <div className="Module">
-                                    <form
-                                        className={classes.container}
-                                        noValidate
-                                    >
-                                        <TextField
-                                            id="time"
-                                            label="Thời gian tưới"
-                                            type="time"
-                                            defaultValue="15:00"
-                                            className={classes.textField}
-                                            InputLabelProps={{
-                                                shrink: true,
-                                            }}
-                                            inputProps={{
-                                                step: 60, // 5 min
-                                            }}
-                                            onChange={handleTimepickerChange}
-                                        />
-                                    </form>
-                                    {waterProcessing === true ? (
-                                        <CountdownCircleTimer
-                                            isPlaying={waterProcessing}
-                                            duration={formatTime(timeRange)}
-                                            colors={[
-                                                ["#004777", 0.33],
-                                                ["#F7B801", 0.33],
-                                                ["#A30000", 0.33],
-                                            ]}
-                                            onComplete={handleCountdownCircle}
-                                        >
-                                            {({ remainingTime }) =>
-                                                format(remainingTime)
-                                            }
-                                        </CountdownCircleTimer>
-                                    ) : (
-                                        ""
-                                    )}
-                                </div>
-                            ) : (
-                                ""
-                            )}
                             <div className="Module">
                                 <p>{openState === false ? "Mở" : "Đóng"} rèm</p>
                                 <Button
                                     onClick={() =>
                                         handleCurtainLoading(
-                                            `Rèm của zone ${zone} đang được ${openState === true
-                                                ? "đóng"
-                                                : "mở"
+                                            `Rèm của zone ${zone} đang được ${
+                                                openState === true
+                                                    ? "đóng"
+                                                    : "mở"
                                             }`
                                         )
-                                    }
-                                    disabled={
-                                        curtainProcessing === false
-                                            ? false
-                                            : true
                                     }
                                 >
                                     {openState === false ? "Mở" : "Đóng"}

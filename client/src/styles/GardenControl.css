@@ -1,4 +1,4 @@
-.Display{
+.Display {
     width: 60%;
 }
 
@@ -14,15 +14,14 @@
     padding: 20px 20px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(2,120px);
+    grid-template-columns: repeat(2, 120px);
     grid-template-rows: 230px 120px 230px;
     grid-column-gap: 30px;
     grid-row-gap: 30px;
-    grid-template-areas: 
-    "zone1 zone2"
-    "zone3 zone3"
-    "zone4 zone5"
-    ;
+    grid-template-areas:
+        "zone1 zone2"
+        "zone3 zone3"
+        "zone4 zone5";
 }
 
 .Block:hover {
@@ -65,7 +64,6 @@
     grid-area: zone5;
 }
 
-
 .Rotate {
     transform: rotate(-90deg);
 }
@@ -78,10 +76,10 @@ button {
 }
 
 .Module {
-    display:flex;
+    display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items:center;
+    align-items: center;
 
     margin: 20px auto;
     width: 90%;

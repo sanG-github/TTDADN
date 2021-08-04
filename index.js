@@ -63,7 +63,7 @@ app.use(
 const database = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "quan0402",
+    password: "sanglaso1",
     database: "DADN",
 });
 
@@ -189,7 +189,6 @@ app.get("/device", (req, res) => {
  */
 
 app.post("/addNewDevice", (req, res) => {
-    console.log(req.body);
     const values = {
         name: req.body.name,
         type: req.body.type,
@@ -198,7 +197,7 @@ app.post("/addNewDevice", (req, res) => {
         zoneId: parseInt(req.body.zoneId),
     };
     const sqlUpdate = `INSERT INTO DADN.device (name, type, status, brand,feedName,feed,zoneId) VALUES  ('${values.name}','${values.type}','đang hoạt động','ChipFC','${values.feedName}','${values.feed}',${values.zoneId})`;
-    console.log(sqlUpdate);
+
     database.query(sqlUpdate, (err, result) => {
         if (err) {
             res.send({
@@ -292,14 +291,13 @@ app.get("/constrain", (req, res) => {
  */
 
 app.post("/setConstrain", (req, res) => {
-    console.log();
     const values = {
         type: req.body.type,
         upper_bound: parseInt(req.body.upper_bound),
         lower_bound: parseInt(req.body.lower_bound),
     };
     const sqlUpdate = `UPDATE DADN.constrain SET lower_bound = ${values.lower_bound}, upper_bound  = ${values.upper_bound} WHERE type = '${values.type}'`;
-    console.log(sqlUpdate);
+
     database.query(sqlUpdate, (err, result) => {
         if (err) console.log(err);
         else {
@@ -355,6 +353,50 @@ const io = socket(server);
 // MQTT
 // Update Key
 var client, client2;
+var ioSocket = [];
+
+io.on("connection", (socket) => {
+    ioSocket.push(socket);
+
+    console.log("socketIO: new client connected ");
+
+    socket.on("changeFeedData", (patternData) => {
+        try {
+            const data = JSON.parse(patternData);
+            console.log(JSON.parse(patternData));
+            if (data.message.name === "RELAY" || data.message.name == "LIGHT") {
+                client2.publish(data.topic, JSON.stringify(data.message));
+                console.log("BBC1 publish success");
+
+                // Insert last_values to database
+                const sqlUpdate = `UPDATE device SET last_values = '${data.message.data}' WHERE id = ${data.message.id};`;
+                console.log(sqlUpdate);
+                database.query(sqlUpdate, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(`Insert successfully`);
+                    }
+                });
+            } else {
+                client.publish(data.topic, JSON.stringify(data.message));
+                console.log("BBC Publish success");
+
+                // Insert last_values to database
+                const sqlUpdate = `UPDATE device SET last_values = '${data.message.data}' WHERE id = ${data.message.id};`;
+                database.query(sqlUpdate, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(`Insert successfully`);
+                    }
+                });
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    });
+});
 
 async function updateClient() {
     const options = {
@@ -374,9 +416,9 @@ async function updateClient() {
     // console.log(options);
     // console.log(options2);
 
-    client = mqtt.connect("mqtt://" + options.host, options);
+    client = await mqtt.connect("mqtt://" + options.host, options);
 
-    client2 = mqtt.connect("mqtt://" + options2.host, options2);
+    client2 = await mqtt.connect("mqtt://" + options2.host, options2);
 
     await client.on("connect", function () {
         console.log("mqtt: server CSE_BBC connected!");
@@ -395,7 +437,7 @@ async function updateClient() {
             console.log("\t", feed.name);
             client.subscribe(process.env.USERX + "/feeds/" + feed.name);
         });
-       alertEmitter.emit("clientready");
+        alertEmitter.emit("clientready");
     });
 
     axios.get(`https://io.adafruit.com/api/v2/CSE_BBC1/feeds`).then((res) => {
@@ -432,6 +474,21 @@ async function updateClient() {
                 break;
             default:
                 break;
+        }
+
+        if (
+            ["SPEAKER", "RELAY", "LED", "LCD", "DRV_PWM"].includes(values.name)
+        ) {
+            // Insert last_values to database
+            const sqlUpdate = `UPDATE device SET last_values = '${values.data}' WHERE id = ${values.id};`;
+            console.log(sqlUpdate);
+            database.query(sqlUpdate, (err, result) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(`Insert successfully`);
+                }
+            });
         }
 
         if (table != "") {
@@ -482,10 +539,12 @@ async function updateClient() {
         }
 
         ioSocket &&
-            ioSocket.emit("feedFromServer", {
-                topic: topic,
-                data: message.toString(),
-            });
+            ioSocket.map((s) =>
+                s.emit("feedFromServer", {
+                    topic: topic,
+                    data: message.toString(),
+                })
+            );
 
         // đóng kết nối của client
         // client.end();
@@ -517,6 +576,21 @@ async function updateClient() {
                 break;
         }
 
+        if (
+            ["SPEAKER", "RELAY", "LED", "LCD", "DRV_PWM"].includes(values.name)
+        ) {
+            // Insert last_values to database
+            const sqlUpdate = `UPDATE device SET last_values = '${values.data}' WHERE id = ${values.id};`;
+            console.log(sqlUpdate);
+            database.query(sqlUpdate, (err, result) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(`Insert successfully`);
+                }
+            });
+        }
+
         if (table != "") {
             const sqlSelect =
                 "INSERT `" +
@@ -535,64 +609,21 @@ async function updateClient() {
         }
 
         ioSocket &&
-            ioSocket.emit("feedFromServer2", {
-                topic: topic,
-                data: message.toString(),
-            });
+            ioSocket.map((s) =>
+                s.emit("feedFromServer2", {
+                    topic: topic,
+                    data: message.toString(),
+                })
+            );
 
         // đóng kết nối của client
         // client.end();
     });
 }
-var ioSocket;
-
-io.on("connection", (socket) => {
-    console.log("socketIO: new client connected ");
-
-    socket.on("changeFeedData", (patternData) => {
-        try {
-            const data = JSON.parse(patternData);
-            console.log(JSON.parse(patternData));
-            if (data.message.name === "RELAY" || data.message.name == "LIGHT") {
-                client2.publish(data.topic, JSON.stringify(data.message));
-                console.log("BBC1 publish success");
-
-                // Insert last_values to database
-                const sqlUpdate = `UPDATE device SET last_values = '${data.message.data}' WHERE id = ${data.message.id};`;
-                console.log(sqlUpdate)
-                database.query(sqlUpdate, (err, result) => {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log(`Insert successfully`, result);
-                    }
-                });
-            } else {
-                client.publish(data.topic, JSON.stringify(data.message));
-                console.log("BBC Publish success");
-
-                // Insert last_values to database
-                const sqlUpdate = `UPDATE device SET last_values = '${data.message.data}' WHERE id = ${data.message.id};`;
-                database.query(sqlUpdate, (err, result) => {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log(`Insert successfully`, result);
-                    }
-                });
-            }
-        } catch (err) {
-            console.log(err);
-        }
-    });
-
-    ioSocket = socket;
-});
 
 app.get("/deviceWithZoneId/:id", (req, res) => {
     const sqlSelect = `SELECT * FROM DADN.device WHERE zoneId = ${req.params.id};`;
     database.query(sqlSelect, (err, result) => {
-        console.log(result);
         if (err) {
             console.log(err);
         }

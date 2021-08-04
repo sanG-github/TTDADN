@@ -70,7 +70,8 @@ function publishData(datum, value) {
         }
     }`
     );
-    console.log("Success");
+
+    openNotification("Thông báo", `Cập nhật thành công`, true);
 }
 
 function Led({ datum }) {
@@ -192,6 +193,7 @@ function WaterPump({ datum }) {
             }
             style={{ width: 300, margin: "10px 10px", borderRadius: "20px" }}
         >
+            <p>ZoneId: {datum.zoneId}</p>
             <p>ID thiết bị: {datum.id}</p>
             <p>Trạng thái: {datum.status}</p>
         </Card>
@@ -222,6 +224,7 @@ function Engine({ datum }) {
             title={datum.name}
             style={{ width: 300, margin: "10px 10px", borderRadius: "20px" }}
         >
+            <p>Zone ID: {datum.zoneId}</p>
             <p>ID thiết bị: {datum.id}</p>
             <p>Trạng thái: {datum.status}</p>
             <p>
